@@ -1,0 +1,54 @@
+VS2012
+MVC 4.0
+Razor 2.0
+
+File -> New Project -> Web -> ASP.NET MVC 4 Web Application
+
+Select Internet Application with Razor View Engine
+
+Copied App_Data\Books.sdf
+Copied Styles\StyleSheet.css
+Added EditBook.cshtml to project.
+
+
+
+jQuery AJAX
+
+WebGrid:
+
+http://www.codeproject.com/Tips/615776/WebGrid-in-ASP-NET-MVC
+http://www.codeproject.com/Articles/832288/CRUD-with-SPA-ASP-NET-Web-API-and-Angular-js
+
+http://www.campusmvp.net/blog/webgrid-in-mvc-3-step-by-step-one
+http://www.campusmvp.net/blog/webgrid-in-mvc-step-by-step-part-two
+
+http://www.mikesdotnetting.com/article/220/posting-data-with-jquery-ajax-in-asp-net-razor-web-pages
+http://www.mikesdotnetting.com/article/202/inline-editing-with-the-webgrid
+
+http://www.asp.net/mvc/overview/older-versions/getting-started-with-aspnet-mvc4/intro-to-aspnet-mvc-4
+
+https://github.com/telerik/kendo-ui-core
+https://drive.google.com/#folders/0B7Ovm8bUYiUDR29iSkEyMk5pVUk
+http://ng-learn.org/tags/angularjs-2.html
+
+
+
+// Example of displaying results from an action call.
+http://msdn.microsoft.com/en-us/library/system.web.mvc.jsonresult%28v=vs.118%29.aspx
+
+// !!! Also look at this post for setting up a model to receive the fields and their values !!!
+// Example of making an ajax call with a controller return Json (second response):
+http://stackoverflow.com/questions/13362005/jquery-post-to-mvc-controller-to-return-json
+
+// This might be necessary to look at regarding ajax, particularly how he fixed his problem by adding the model name?
+http://stackoverflow.com/questions/10912438/mvc3-razor-how-to-do-something-with-json-passed-data-in-controller
+
+A cool control:
+http://ivaynberg.github.io/select2/
+
+ActionResult built-in result types:
+http://msdn.microsoft.com/en-us/library/system.web.mvc.actionresult%28v=vs.118%29.aspx
+
+post vs. ajax (jQuery):
+https://forum.jquery.com/topic/what-should-i-use-post-vs-ajax
+
