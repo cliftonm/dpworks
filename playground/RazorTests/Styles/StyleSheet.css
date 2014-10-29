@@ -36,8 +36,13 @@ span{
     padding-left: 4px;
 }
 
+.edit-width {
+	width: 125px;
+}
+
 .col1{
-    width:  50px;
+	padding-left: 6px;
+    width:  200px;
 }
 
 .col2{

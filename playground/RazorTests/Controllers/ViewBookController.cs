@@ -66,6 +66,17 @@ namespace RazorTests.Controllers
 		}
 
 		[HttpPost]
+		public ActionResult DeleteBook()
+		{
+			var bookId = Request["BookId"];
+			var db = Database.Open("Books");
+			var data = db.Execute(@"delete from Books where BookID=@0", bookId);
+
+			return new EmptyResult();
+		}
+
+
+		[HttpPost]
 		public ActionResult SaveChanges()
 		{
 			var bookId = Request["BookId"];

@@ -84,7 +84,7 @@
 
                     // Add a row.
                     var newRow = $('table').append('<tr>' +
-                            '<td class="col1"><button class="edit-book display-mode" id="-1">Edit</button> <button class="save-book edit-mode" id="-1">Save</button>' +
+                            '<td class="col1"><button class="delete-book display-mode" id="-1">Delete</button> <button class="edit-book display-mode" id="-1">Edit</button> <button class="save-book edit-mode" id="-1">Save</button>' +
                             '<td class="col2"><span id="title" class="display-mode"/> <input name="Title" id="Title" class="edit-mode"/></td>' +
                             '<td class="col3"><span id="authorname" class="display-mode"/> <select name="AuthorId" id="AuthorId" class="edit-mode"></select></td>' +
                             '<td class="col4"><span id="category" class="display-mode"/> <select name="CategoryId" id="CategoryId" class="edit-mode"></select></td>' +
@@ -120,6 +120,19 @@
                         });
                     });
                 });
+
+                $(".delete-book").live("click", function ()
+                {
+                    var flag = confirm('Are you sure you want to delete this record?');
+
+                    if (flag)
+                    {
+                        var tr = $(this).parents('tr:first');
+                        tr.fadeOut(400, function () {tr.remove();});
+                        var bookId = $(this).prop('id');
+                        $.post('/ViewBook/DeleteBook', { BookId: bookId });
+                    }
+                });
             })
         </script>
     </head>
@@ -135,8 +148,9 @@
                     grid.Column("", 
                                 style: "col1", 
                                 format: @<text>
+                                            <button class="delete-book display-mode" id="@item.BookId">Delete</button>
                                             <button class="edit-book display-mode" id="@item.BookId">Edit</button>
-                                            <button class="save-book edit-mode" id="@item.BookId">Save</button>
+                                            <button class="save-book edit-mode edit-width" id="@item.BookId">Save</button>
                                         </text>),
                     grid.Column("Title",
                                 style: "col2",
