@@ -52,3 +52,14 @@ http://msdn.microsoft.com/en-us/library/system.web.mvc.actionresult%28v=vs.118%2
 post vs. ajax (jQuery):
 https://forum.jquery.com/topic/what-should-i-use-post-vs-ajax
 
+See this for showing sort arrows, especially the comment for doing it in CSS:
+http://www.mikesdotnetting.com/article/203/enhancing-the-webgrid-with-sort-arrows
+
+jQuery "on" vs. "live", needed when updating the grid with ajax calls (note that "live" is deprecated!)
+http://api.jquery.com/live/
+
+Add a row (Mike is awesome!):
+http://www.mikesdotnetting.com/article/223/adding-a-new-row-in-the-razor-webgrid
+
+!!! When updating the style sheet, REFRESH the browser window otherwise a cached version will be used !!!
+

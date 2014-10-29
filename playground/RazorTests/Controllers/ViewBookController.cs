@@ -49,6 +49,22 @@ namespace RazorTests.Controllers
             return View();
         }
 
+		public ActionResult GetAuthors()
+		{
+			var db = Database.Open("Books");
+			var data = db.Query(@"SELECT AuthorId, FirstName + ' ' + LastName As Author FROM Authors");
+			var jsonResult = System.Web.Helpers.Json.Encode(data);
+			return Json(jsonResult, JsonRequestBehavior.AllowGet);
+		}
+
+		public ActionResult GetCategories()
+		{
+			var db = Database.Open("Books");
+			var data = db.Query(@"SELECT CategoryId, Category FROM Categories order by Category");
+			var jsonResult = System.Web.Helpers.Json.Encode(data);
+			return Json(jsonResult, JsonRequestBehavior.AllowGet);
+		}
+
 		[HttpPost]
 		public ActionResult SaveChanges()
 		{
@@ -61,8 +77,18 @@ namespace RazorTests.Controllers
  
 			var db = Database.Open("Books");
 
-			var sql = "UPDATE Books SET Title = @0, AuthorId = @1, CategoryId = @2, ISBN = @3, Hardback = @4 WHERE BookId = @5";
-			db.Execute(sql, title, authorId, categoryId, isbn, hardback, bookId);
+			// Update or insert?
+			if (bookId == "-1")
+			{
+				var sql = @"INSERT INTO Books (Title, ISBN, AuthorId, CategoryId, Hardback) VALUES (@0, @1, @2, @3, @4)";
+				db.Execute(sql, title, isbn, authorId, categoryId, hardback);
+				bookId = db.GetLastInsertId().ToString();
+			}
+			else
+			{
+				var sql = "UPDATE Books SET Title = @0, AuthorId = @1, CategoryId = @2, ISBN = @3, Hardback = @4 WHERE BookId = @5";
+				db.Execute(sql, title, authorId, categoryId, isbn, hardback, bookId);
+			}
 
 			// Not used, as the client updates itself.
 
@@ -74,12 +100,11 @@ namespace RazorTests.Controllers
 			var result = db.QuerySingle(sql, bookId);
 			// Json.Write(result, Response.Output);
 			var jsonResult = System.Web.Helpers.Json.Encode(result);
-			 
-
 			return Json(jsonResult, JsonRequestBehavior.AllowGet);
 			*/
 
-			return new EmptyResult();
+			// return new EmptyResult();
+			return Json(new { BookId = bookId });
 		}
     }
 }

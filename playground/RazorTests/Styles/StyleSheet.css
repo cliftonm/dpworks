@@ -53,6 +53,10 @@ span{
     width:  160px;
 }
 
-col6{
+.col6{
     width:  20px;
+}
+
+.disabled {
+	opacity:.2;
 }

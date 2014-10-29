@@ -11,8 +11,9 @@
     <head>
         <meta charset="utf-8" />
         <title>Inline Editing with the WebGrid</title>
-        <link rel="stylesheet" href="~/Styles/StyleSheet.css" type="text/css" />
+        <!-- TODO: How to make this a local reference ? -->
         <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.1.min.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="~/Styles/StyleSheet.css" type="text/css" />
 
         <script>
             function setArrows() {
@@ -34,12 +35,16 @@
 
             $(function () {
                 $('.edit-mode').hide();
+
                 // Use of .live is removed for jQuery 1.9 and beyond.
-                $('.edit-book').live('click', function () {
+                $('.edit-book').live('click', function ()
+                {
                     var tr = $(this).parents('tr:first');
                     tr.find('.edit-mode, .display-mode').toggle();
                 });
-                $('.save-book').live('click', function () {
+
+                $('.save-book').live('click', function ()
+                {
                     var tr = $(this).parents('tr:first');
                     var bookId = $(this).prop('id');
                     var title = tr.find('#Title').val();
@@ -60,10 +65,60 @@
                     // Post the data so the server saves it.
                     $.post(
                         '/ViewBook/SaveChanges',
-                        { BookId: bookId, Title: title, AuthorId: authorId, CategoryId: categoryId, ISBN: isbn, Hardback: hardback });
+                        { BookId: bookId, Title: title, AuthorId: authorId, CategoryId: categoryId, ISBN: isbn, Hardback: hardback },
+                        function (bookID)
+                        {
+                            var newBookID = bookID.BookId;
+                            tr.find('#-1').attr("id", newBookID);
+                            $('#add').attr("disabled", false).removeClass("disabled");
+                        });
 
                     // Revert to display mode.
                     tr.find('.edit-mode, .display-mode').toggle();
+                });
+
+                $('#add').on('click', function ()
+                {
+                    // Disable add button.  Add cannot be re-enabled until we get the ID of the new row back from the server.
+                    $(this).attr("disabled", true).addClass("disabled");
+
+                    // Add a row.
+                    var newRow = $('table').append('<tr>' +
+                            '<td class="col1"><button class="edit-book display-mode" id="-1">Edit</button> <button class="save-book edit-mode" id="-1">Save</button>' +
+                            '<td class="col2"><span id="title" class="display-mode"/> <input name="Title" id="Title" class="edit-mode"/></td>' +
+                            '<td class="col3"><span id="authorname" class="display-mode"/> <select name="AuthorId" id="AuthorId" class="edit-mode"></select></td>' +
+                            '<td class="col4"><span id="category" class="display-mode"/> <select name="CategoryId" id="CategoryId" class="edit-mode"></select></td>' +
+                            '<td class="col5"><span id="isbn" class="display-mode"/> <input name="ISBN" id="ISBN" class="edit-mode"/></td>' +
+                            '<td class="col6"><input id="hardback-display" class="display-mode" type="checkbox" name="hardback-display"/> <input name="HardBack" id="Hardback" type="checkbox" class="edit-mode"/></td>');
+
+                    // Hide the display mode fields and show the edit mode fields.
+                    newRow.find("#-1").parents('tr:first').find('.edit-mode').show();
+                    newRow.find("#-1").parents('tr:first').find('.display-mode').hide();
+
+                    // Create the first "select author/category" entry.
+                    // $('#NewAuthorId').append($('<option/>').attr('value', '').text('-- Select Author --'));
+                    var authorList = newRow.find("#AuthorId");
+                    var categoryList = newRow.find("#CategoryId");
+                    authorList.append($('<option/>').attr('value', '').text('-- Select Author --'));
+                    categoryList.append($('<option/>').attr('value', '').text('-- Select Category --'));
+
+                    // Get the list of authors and populate the select box.
+                    $.getJSON('/ViewBook/GetAuthors', function (authors)
+                    {
+                        $.each($.parseJSON(authors), function (index, author)
+                        {
+                            authorList.append($('<option/>').attr('value', author.AuthorId).text(author.Author));
+                        });
+                    });
+
+                    // Get the list of categories and populate the select box.
+                    $.getJSON('/ViewBook/GetCategories', function (categories)
+                    {
+                        $.each($.parseJSON(categories), function (index, category)
+                        {
+                            categoryList.append($('<option/>').attr('value', category.CategoryId).text(category.Category));
+                        });
+                    });
                 });
             })
         </script>
@@ -120,6 +175,8 @@
             @Html.Hidden("dir", grid.SortDirection) 
             @Html.Hidden("col", grid.SortColumn)
         </div>
+        
+        <button id="add">Add</button>
     </body>
 
 </html>
