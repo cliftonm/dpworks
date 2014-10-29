@@ -16,6 +16,36 @@ namespace RazorTests.Controllers
 
         public ActionResult Index()
         {
+			var db = Database.Open("Books");
+
+			var books = db.Query(@"SELECT b.BookId, b.Title, b.ISBN, b.AuthorId, b.CategoryId, 
+                            a.FirstName + ' ' + a.LastName AS AuthorName, c.Category, b.Hardback  
+                            FROM Books b INNER JOIN Authors a 
+                            ON b.AuthorId = a.AuthorId  
+                            INNER JOIN Categories c 
+                            ON b.CategoryId = c.CategoryId 
+                            ORDER BY b.BookId DESC");
+
+			var categories = db.Query("SELECT CategoryId, Category FROM Categories")
+								.Select(category => new SelectListItem
+								{
+									Value = category.CategoryId.ToString(),
+									Text = category.Category
+								});
+
+			var authors = db.Query("SELECT AuthorId, FirstName + ' ' + LastName AS AuthorName FROM Authors")
+								.Select(author => new SelectListItem
+								{
+									Value = author.AuthorId.ToString(),
+									Text = author.AuthorName
+								});
+
+			var grid = new WebGrid(books, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
+
+			ViewBag.Grid = grid;
+			ViewBag.Categories = categories;
+			ViewBag.Authors = authors;
+
             return View();
         }
 
