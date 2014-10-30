@@ -9,39 +9,21 @@
         @Scripts.Render("~/bundles/modernizr")
     </head>
     <body>
-        <header>
-            <div class="content-wrapper">
-                <!--
-                <div class="float-left">
-                    <p class="site-title">@Html.ActionLink("your logo here", "Index", "Home")</p>
-                </div>
-                -->
-                <div class="float-right">
-                    <!--
-                    <section id="login">
-                        @Html.Partial("_LoginPartial")
-                    </section>
-                    -->
-                    <nav>
-                        <ul id="menu">
-                            <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                            <li>@Html.ActionLink("About", "About", "Home")</li>
-                            <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
-                        </ul>
-                    </nav>
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="btn-group navbar-right">
+                <div class="padding-top8">
+                    <button type="button" class="btn btn-default">@Html.ActionLink("Home", "Index", "Home")</button>
+                    <button type="button" class="btn btn-default">@Html.ActionLink("About", "About", "Home")</button>
+                    <button type="button" class="btn btn-default">@Html.ActionLink("Contact", "Contact", "Home")</button>
                 </div>
             </div>
-        </header>
-        <div id="body">
-          @RenderBody()
-        </div>
+        </nav>
+
+        @RenderBody()
+
         <footer>
-            <div class="content-wrapper">
-                <div>
-                    <p class="center-text">&copy; @DateTime.Now.Year - dpworks.org<br />
-                    Developed by <a href="http://www.marcclifton.com" target="_blank">Marc Clifton</a></p>
-                </div>
-            </div>
+            <div class="text-center padding-top8">&copy; @DateTime.Now.Year - dpworks.org<br />
+            Developed by <a href="http://www.marcclifton.com" target="_blank">Marc Clifton</a></div>
         </footer>
 
         @Scripts.Render("~/bundles/jquery")

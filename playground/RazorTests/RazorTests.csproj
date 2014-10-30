@@ -244,6 +244,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-1.9.1.min.js" />
+    <Content Include="Styles\Login.css" />
     <Content Include="Styles\StyleSheet.css" />
     <Content Include="Views\ViewBook\SaveChanges.cshtml" />
     <None Include="Scripts\jquery-1.7.1.intellisense.js" />
@@ -301,6 +302,8 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\ViewBook\Index.cshtml" />
     <Content Include="Views\Account\RegisterNewUser.cshtml" />
+    <Content Include="Views\Home\_BootstrapLogin.cshtml" />
+    <Content Include="Views\Home\_ForgotPasswordFlyout.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
