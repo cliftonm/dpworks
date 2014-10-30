@@ -11,13 +11,17 @@
     <body>
         <header>
             <div class="content-wrapper">
+                <!--
                 <div class="float-left">
                     <p class="site-title">@Html.ActionLink("your logo here", "Index", "Home")</p>
                 </div>
+                -->
                 <div class="float-right">
+                    <!--
                     <section id="login">
                         @Html.Partial("_LoginPartial")
                     </section>
+                    -->
                     <nav>
                         <ul id="menu">
                             <li>@Html.ActionLink("Home", "Index", "Home")</li>
@@ -29,15 +33,13 @@
             </div>
         </header>
         <div id="body">
-            @RenderSection("featured", required: false)
-            <section class="content-wrapper main-content clear-fix">
-                @RenderBody()
-            </section>
+          @RenderBody()
         </div>
         <footer>
             <div class="content-wrapper">
-                <div class="float-left">
-                    <p>&copy; @DateTime.Now.Year - My ASP.NET MVC Application</p>
+                <div>
+                    <p class="center-text">&copy; @DateTime.Now.Year - dpworks.org<br />
+                    Developed by <a href="http://www.marcclifton.com" target="_blank">Marc Clifton</a></p>
                 </div>
             </div>
         </footer>

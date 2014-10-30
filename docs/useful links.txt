@@ -63,3 +63,41 @@ http://www.mikesdotnetting.com/article/223/adding-a-new-row-in-the-razor-webgrid
 
 !!! When updating the style sheet, REFRESH the browser window otherwise a cached version will be used !!!
 
+User role authorization:
+http://stackoverflow.com/questions/23582294/how-to-authorize-in-mvc-4-0-razor
+http://www.dotnet-tricks.com/Tutorial/mvc/R9QP060113-Securing-Asp.Net-MVC-Application-by-using-Authorize-Attribute.html
+
+Hosting in WinHost:
+
+	In web.config:
+		Update system.web, add:
+			<roleManager enabled="true"/>
+		update the DefaultConnection string to the SQL Server info provided by NameCheap
+
+The role manager is actually more complicated than that to set up:
+
+http://stackoverflow.com/questions/15753864/to-call-this-method-the-membership-provider-property-must-be-an-instance-of
+
+This whole thing needs to be added to web.config:
+
+<roleManager enabled="true" defaultProvider="SimpleRoleProvider">
+        <providers>
+            <clear />
+            <add name="SimpleRoleProvider" type="WebMatrix.WebData.SimpleRoleProvider, WebMatrix.WebData" />
+        </providers>
+    </roleManager>
+    <membership defaultProvider="SimpleMembershipProvider">
+        <providers>
+            <clear />
+            <add name="SimpleMembershipProvider" type="WebMatrix.WebData.SimpleMembershipProvider, WebMatrix.WebData" />
+        </providers>
+    </membership>
+    <sessionState mode="InProc" customProvider="DefaultSessionProvider">
+        <providers>
+            <add name="DefaultSessionProvider" type="System.Web.Providers.DefaultSessionStateProvider, System.Web.Providers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" connectionStringName="DefaultConnection" />
+        </providers>
+    </sessionState>
+
+
+
+

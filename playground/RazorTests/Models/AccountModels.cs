@@ -18,6 +18,9 @@ namespace RazorTests.Models
 		public DbSet<UserProfile> UserProfiles { get; set; }
 	}
 
+	/// <summary>
+	/// WebSecurity table.  This is all that it can contain.
+	/// </summary>
 	[Table("UserProfile")]
 	public class UserProfile
 	{
@@ -27,13 +30,19 @@ namespace RazorTests.Models
 		public string UserName { get; set; }
 	}
 
-	public class RegisterExternalLoginModel
+	[Table("UserInfo")]
+	public class UserInfo
 	{
-		[Required]
-		[Display(Name = "User name")]
-		public string UserName { get; set; }
-
-		public string ExternalLoginData { get; set; }
+		[Key]
+		[DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
+		public int UserInfoId { get; set; }
+		public int UserId { get; set; }					// FK to UserProfile.UserId
+		public int SiteId { get; set; }					// FK to SiteId
+		public string FirstName { get; set; }
+		public string LastName { get; set; }
+		public string Email { get; set; }
+		public string RegistrationToken { get; set; }
+		public bool Activated { get; set; }
 	}
 
 	public class LocalPasswordModel
@@ -58,12 +67,12 @@ namespace RazorTests.Models
 	public class LoginModel
 	{
 		[Required]
-		[Display(Name = "User name")]
+		[Display(Name = "Username:")]
 		public string UserName { get; set; }
 
 		[Required]
 		[DataType(DataType.Password)]
-		[Display(Name = "Password")]
+		[Display(Name = "Password:")]
 		public string Password { get; set; }
 
 		[Display(Name = "Remember me?")]
@@ -73,25 +82,41 @@ namespace RazorTests.Models
 	public class RegisterModel
 	{
 		[Required]
-		[Display(Name = "User name")]
+		[Display(Name = "Username:")]
 		public string UserName { get; set; }
 
 		[Required]
 		[StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
 		[DataType(DataType.Password)]
-		[Display(Name = "Password")]
+		[Display(Name = "Password:")]
 		public string Password { get; set; }
 
 		[DataType(DataType.Password)]
-		[Display(Name = "Confirm password")]
+		[Display(Name = "Confirm password:")]
 		[Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
 		public string ConfirmPassword { get; set; }
 	}
 
-	public class ExternalLogin
+	/// <summary>
+	/// Used by admins to register new users into the system.
+	/// Once registered, a user will receive an email instructing them to go to a specific link to create their password.
+	/// </summary>
+	public class RegisterNewUserModel
 	{
-		public string Provider { get; set; }
-		public string ProviderDisplayName { get; set; }
-		public string ProviderUserId { get; set; }
+		[Required]
+		[Display(Name = "Username:")]
+		public string UserName { get; set; }
+
+		[Required]
+		[Display(Name = "First Name:")]
+		public string FirstName { get; set; }
+
+		[Required]
+		[Display(Name = "Last Name:")]
+		public string LastName { get; set; }
+
+		[Required]
+		[Display(Name = "Email:")]
+		public string Email { get; set; }
 	}
 }
