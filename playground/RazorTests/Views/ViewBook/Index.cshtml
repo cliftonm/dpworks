@@ -11,11 +11,31 @@
     <head>
         <meta charset="utf-8" />
         <title>Inline Editing with the WebGrid</title>
-        <!-- TODO: How to make this a local reference ? -->
-        <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.1.min.js" type="text/javascript"></script>
+        <script src="~/Scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
         <link rel="stylesheet" href="~/Styles/StyleSheet.css" type="text/css" />
 
         <script>
+            $(function () {
+                $('.edit-mode').hide();
+                initializeFormEvents();
+                initializeGridItemEvents();
+            });
+
+            function initializeFormEvents() {
+                $('#add').on('click', function () {addBook($(this));});
+            }
+            
+            // New way of doing .live in jQuery 1.9.1
+            function initializeGridItemEvents() {
+                $(document).on('click', '.edit-book', function () { editBook($(this)); });
+                $(document).on('click', '.save-book', function () { saveBook($(this)); });
+                $(document).on('click', '.delete-book', function () { deleteBook($(this)); });
+                $(document).on('click', '.save-new-book', function () {
+                    $('.save-new-book').removeClass("save-new-book").addClass("save-book");
+                    saveBook($(this));
+                });
+            };
+
             function setArrows() {
                 var dir = $('#dir').val();
                 var col = $('#col').val();
@@ -33,107 +53,93 @@
                 $('.display-mode').show();
             };
 
-            $(function () {
-                $('.edit-mode').hide();
+            function addBook(element) {
+                // Disable add button.  Add cannot be re-enabled until we get the ID of the new row back from the server.
+                element.attr("disabled", true).addClass("disabled");
 
-                // Use of .live is removed for jQuery 1.9 and beyond.
-                $('.edit-book').live('click', function ()
-                {
-                    var tr = $(this).parents('tr:first');
-                    tr.find('.edit-mode, .display-mode').toggle();
-                });
+                // Add a row.
+                var newTableRow = $('table').append('<tr>' +
+                        '<td class="col1"><button class="delete-book display-mode" id="-1">Delete</button> <button class="edit-book display-mode" id="-1">Edit</button> <button class="save-new-book edit-mode" id="-1">Save</button>' +
+                        '<td class="col2"><span id="title" class="display-mode"/> <input name="Title" id="Title" class="edit-mode"/></td>' +
+                        '<td class="col3"><span id="authorname" class="display-mode"/> <select name="AuthorId" id="AuthorId" class="edit-mode"></select></td>' +
+                        '<td class="col4"><span id="category" class="display-mode"/> <select name="CategoryId" id="CategoryId" class="edit-mode"></select></td>' +
+                        '<td class="col5"><span id="isbn" class="display-mode"/> <input name="ISBN" id="ISBN" class="edit-mode"/></td>' +
+                        '<td class="col6"><input id="hardback-display" class="display-mode" type="checkbox" name="hardback-display"/> <input name="HardBack" id="Hardback" type="checkbox" class="edit-mode"/></td>');
 
-                $('.save-book').live('click', function ()
-                {
-                    var tr = $(this).parents('tr:first');
-                    var bookId = $(this).prop('id');
-                    var title = tr.find('#Title').val();
-                    var authorId = tr.find('#AuthorId').val();
-                    var categoryId = tr.find('#CategoryId').val();
-                    var authorName = tr.find("#AuthorId option:selected").text();
-                    var categoryName = tr.find("#CategoryId option:selected").text();
-                    var isbn = tr.find('#ISBN').val();
-                    var hardback = tr.find('#Hardback').attr('checked') ? true : false;
+                var newRow = newTableRow.find("#-1").parents('tr:first');
+                // Hide the display mode fields and show the edit mode fields.
+                newRow.find('.edit-mode').show();
+                newRow.find('.display-mode').hide();
 
-                    // Update the display mode line:
-                    tr.find('#title').text(title);
-                    tr.find('#authorname').text(authorName);
-                    tr.find('#category').text(categoryName);
-                    tr.find('#isbn').text(isbn);
-                    tr.find('#hardback-display').removeAttr("disabled").attr('checked', hardback).attr('disabled', true);
+                // Create the first "select author/category" entry.
+                // $('#NewAuthorId').append($('<option/>').attr('value', '').text('-- Select Author --'));
+                var authorList = newRow.find("#AuthorId");
+                var categoryList = newRow.find("#CategoryId");
+                authorList.append($('<option/>').attr('value', '').text('-- Select Author --'));
+                categoryList.append($('<option/>').attr('value', '').text('-- Select Category --'));
 
-                    // Post the data so the server saves it.
-                    $.post(
-                        '/ViewBook/SaveChanges',
-                        { BookId: bookId, Title: title, AuthorId: authorId, CategoryId: categoryId, ISBN: isbn, Hardback: hardback },
-                        function (bookID)
-                        {
-                            var newBookID = bookID.BookId;
-                            tr.find('#-1').attr("id", newBookID);
-                            $('#add').attr("disabled", false).removeClass("disabled");
-                        });
-
-                    // Revert to display mode.
-                    tr.find('.edit-mode, .display-mode').toggle();
-                });
-
-                $('#add').on('click', function ()
-                {
-                    // Disable add button.  Add cannot be re-enabled until we get the ID of the new row back from the server.
-                    $(this).attr("disabled", true).addClass("disabled");
-
-                    // Add a row.
-                    var newRow = $('table').append('<tr>' +
-                            '<td class="col1"><button class="delete-book display-mode" id="-1">Delete</button> <button class="edit-book display-mode" id="-1">Edit</button> <button class="save-book edit-mode" id="-1">Save</button>' +
-                            '<td class="col2"><span id="title" class="display-mode"/> <input name="Title" id="Title" class="edit-mode"/></td>' +
-                            '<td class="col3"><span id="authorname" class="display-mode"/> <select name="AuthorId" id="AuthorId" class="edit-mode"></select></td>' +
-                            '<td class="col4"><span id="category" class="display-mode"/> <select name="CategoryId" id="CategoryId" class="edit-mode"></select></td>' +
-                            '<td class="col5"><span id="isbn" class="display-mode"/> <input name="ISBN" id="ISBN" class="edit-mode"/></td>' +
-                            '<td class="col6"><input id="hardback-display" class="display-mode" type="checkbox" name="hardback-display"/> <input name="HardBack" id="Hardback" type="checkbox" class="edit-mode"/></td>');
-
-                    // Hide the display mode fields and show the edit mode fields.
-                    newRow.find("#-1").parents('tr:first').find('.edit-mode').show();
-                    newRow.find("#-1").parents('tr:first').find('.display-mode').hide();
-
-                    // Create the first "select author/category" entry.
-                    // $('#NewAuthorId').append($('<option/>').attr('value', '').text('-- Select Author --'));
-                    var authorList = newRow.find("#AuthorId");
-                    var categoryList = newRow.find("#CategoryId");
-                    authorList.append($('<option/>').attr('value', '').text('-- Select Author --'));
-                    categoryList.append($('<option/>').attr('value', '').text('-- Select Category --'));
-
-                    // Get the list of authors and populate the select box.
-                    $.getJSON('/ViewBook/GetAuthors', function (authors)
-                    {
-                        $.each($.parseJSON(authors), function (index, author)
-                        {
-                            authorList.append($('<option/>').attr('value', author.AuthorId).text(author.Author));
-                        });
-                    });
-
-                    // Get the list of categories and populate the select box.
-                    $.getJSON('/ViewBook/GetCategories', function (categories)
-                    {
-                        $.each($.parseJSON(categories), function (index, category)
-                        {
-                            categoryList.append($('<option/>').attr('value', category.CategoryId).text(category.Category));
-                        });
+                // Get the list of authors and populate the select box.
+                $.getJSON('/ViewBook/GetAuthors', function (authors) {
+                    $.each($.parseJSON(authors), function (index, author) {
+                        authorList.append($('<option/>').attr('value', author.AuthorId).text(author.Author));
                     });
                 });
 
-                $(".delete-book").live("click", function ()
-                {
-                    var flag = confirm('Are you sure you want to delete this record?');
-
-                    if (flag)
-                    {
-                        var tr = $(this).parents('tr:first');
-                        tr.fadeOut(400, function () {tr.remove();});
-                        var bookId = $(this).prop('id');
-                        $.post('/ViewBook/DeleteBook', { BookId: bookId });
-                    }
+                // Get the list of categories and populate the select box.
+                $.getJSON('/ViewBook/GetCategories', function (categories) {
+                    $.each($.parseJSON(categories), function (index, category) {
+                        categoryList.append($('<option/>').attr('value', category.CategoryId).text(category.Category));
+                    });
                 });
-            })
+            }
+
+            function editBook(element) {
+                var tr = element.parents('tr:first');
+                tr.find('.edit-mode, .display-mode').toggle();
+            };
+
+            function saveBook(element) {
+                var tr = element.parents('tr:first');
+                var bookId = element.prop('id');
+                var title = tr.find('#Title').val();
+                var authorId = tr.find('#AuthorId').val();
+                var categoryId = tr.find('#CategoryId').val();
+                var authorName = tr.find("#AuthorId option:selected").text();
+                var categoryName = tr.find("#CategoryId option:selected").text();
+                var isbn = tr.find('#ISBN').val();
+                var hardback = tr.find('#Hardback').attr('checked') ? true : false;
+
+                // Update the display mode line:
+                tr.find('#title').text(title);
+                tr.find('#authorname').text(authorName);
+                tr.find('#category').text(categoryName);
+                tr.find('#isbn').text(isbn);
+                tr.find('#hardback-display').removeAttr("disabled").attr('checked', hardback).attr('disabled', true);
+
+                // Post the data so the server saves it.
+                $.post(
+                    '/ViewBook/SaveChanges',
+                    { BookId: bookId, Title: title, AuthorId: authorId, CategoryId: categoryId, ISBN: isbn, Hardback: hardback },
+                    function (bookID) {
+                        var newBookID = bookID.BookId;
+                        tr.find('#-1').attr("id", newBookID);
+                        $('#add').attr("disabled", false).removeClass("disabled");
+                    });
+
+                // Revert to display mode.
+                tr.find('.edit-mode, .display-mode').toggle();
+            };
+
+            function deleteBook(element) {
+                var flag = confirm('Are you sure you want to delete this record?');
+
+                if (flag) {
+                    var tr = element.parents('tr:first');
+                    tr.fadeOut(400, function () { tr.remove(); });
+                    var bookId = element.prop('id');
+                    $.post('/ViewBook/DeleteBook', { BookId: bookId });
+                }
+            };
         </script>
     </head>
 
