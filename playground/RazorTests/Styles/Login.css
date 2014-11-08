@@ -2,12 +2,19 @@
 	:: Login Section
 	-------------------------------------------------- */
 #login {
-    padding-top: 50px
+    padding-top: 0px
 }
 #login .form-wrap {
     width: 30%;
-    margin: 0 auto;
+	float: none;
+	margin: 0 auto;
 }
+
+.col-centered {
+	float: none;
+	margin: 0 auto;
+}
+
 #login h1 {
     color: #1fa67b;
     font-size: 18px;

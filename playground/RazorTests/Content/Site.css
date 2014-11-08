@@ -4,10 +4,13 @@ html {
   position: relative;
   min-height: 100%;
 }
+
 body {
   /* Margin bottom by footer height */
   margin-bottom: 60px;
+  padding-top: 50px;
 }
+
 footer {
   position: absolute;
   bottom: 0;
@@ -21,3 +24,43 @@ footer {
 	padding-top: 8px;
 }
 
+.padding-right20{
+	padding-right: 20px;
+}
+
+.nav-sidebar {
+	margin-bottom: 20px;
+}
+
+.active {
+	background-color:#428BCA;
+}
+
+.active a {
+	color: #FFFFFF;
+}
+
+
+.nav-sidebar li a {
+	padding: 2px 2px 2px 2px;
+	margin: 2px 2px 2px 2px;
+}
+
+.sidebar {
+	background-color: #F5F5F5;
+	display: block;
+	float: none;
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding-bottom: 20px;
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-top: 20px;
+	position: fixed;
+	top: 51px
+}
+
+.main {
+	float: left;
+	position: relative;
+}

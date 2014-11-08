@@ -98,6 +98,58 @@ This whole thing needs to be added to web.config:
         </providers>
     </sessionState>
 
+Twitter / Bootstrap:
+
+At the package manager: install-package bootstrap
+
+This will update jQuery to 1.9, so we should also do:
+
+install-package jQuery-vsdoc -Version 1.9.1
+
+Bootstrap stuff:
+
+http://bootsnipp.com/snippets/featured/easy-log-in-form
+
+http://getbootstrap.com/components/#nav
+
+Migrations:
+
+In the Package Manager Console:
+
+enable-migrations
+add-migration InitialCreate
+update-database
+
+Deployment
+SiteID -> ID Migration
+EF attributes: size of string, nullability, FK
+Site management UI
+bootstrap sidebar
+
+login centering issue
+site startup issue
+deployment issue
+
+Bootstrap Sidebar:
+http://getbootstrap.com/examples/dashboard/#
+
+
+Foreign key stuff:
+
+http://stackoverflow.com/questions/15483019/entity-framework-code-first-how-to-annotate-a-foreign-key-for-a-default-valu
+
+
+[ForeignKey( "MemberDataSet" )]
+
+EF Power Tools: https://visualstudiogallery.msdn.microsoft.com/72a60b14-1581-4b9b-89f2-846072eff19d
+
+MSDN's doc on Code First annotations:
+http://msdn.microsoft.com/en-us/data/jj591583.aspx
+
+Great article on Various Ways to Pass Data from Controller to View in MVC:
+http://www.c-sharpcorner.com/UploadFile/abhikumarvatsa/various-ways-to-pass-data-from-controller-to-view-in-mvc/
+
+
 
 
 

@@ -161,6 +161,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\SiteController.cs" />
     <Compile Include="Controllers\ViewBookController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -168,6 +169,27 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201410310122434_SiteProfile.cs" />
+    <Compile Include="Migrations\201410310122434_SiteProfile.Designer.cs">
+      <DependentUpon>201410310122434_SiteProfile.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201410311222041_UpdateSiteTable.cs" />
+    <Compile Include="Migrations\201410311222041_UpdateSiteTable.Designer.cs">
+      <DependentUpon>201410311222041_UpdateSiteTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201410311402241_UpdateSiteTable2.cs" />
+    <Compile Include="Migrations\201410311402241_UpdateSiteTable2.Designer.cs">
+      <DependentUpon>201410311402241_UpdateSiteTable2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201410311427402_UserRoles.cs" />
+    <Compile Include="Migrations\201410311427402_UserRoles.Designer.cs">
+      <DependentUpon>201410311427402_UserRoles.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201410311432313_UserInfo.cs" />
+    <Compile Include="Migrations\201410311432313_UserInfo.Designer.cs">
+      <DependentUpon>201410311432313_UserInfo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\SiteModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -239,6 +261,9 @@
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\bootstrap.css.map" />
+    <None Include="Properties\PublishProfiles\dpworks.org - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\dpworks.org - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\dpworks.pubxml" />
     <None Include="Scripts\jquery-1.9.1-vsdoc.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -246,6 +271,9 @@
     <Content Include="Scripts\jquery-1.9.1.min.js" />
     <Content Include="Styles\Login.css" />
     <Content Include="Styles\StyleSheet.css" />
+    <Content Include="Views\ViewBook\Index.cshtml">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="Views\ViewBook\SaveChanges.cshtml" />
     <None Include="Scripts\jquery-1.7.1.intellisense.js" />
     <Content Include="Scripts\jquery-1.9.1.min.map" />
@@ -300,10 +328,12 @@
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Web.config" />
-    <Content Include="Views\ViewBook\Index.cshtml" />
     <Content Include="Views\Account\RegisterNewUser.cshtml" />
     <Content Include="Views\Home\_BootstrapLogin.cshtml" />
     <Content Include="Views\Home\_ForgotPasswordFlyout.cshtml" />
+    <Content Include="Views\Admin\RoleManagement.cshtml" />
+    <Content Include="_AppStart.cshtml" />
+    <Content Include="Views\ViewBook\GenericGrid.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -311,6 +341,23 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201410310122434_SiteProfile.resx">
+      <DependentUpon>201410310122434_SiteProfile.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201410311222041_UpdateSiteTable.resx">
+      <DependentUpon>201410311222041_UpdateSiteTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201410311402241_UpdateSiteTable2.resx">
+      <DependentUpon>201410311402241_UpdateSiteTable2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201410311427402_UserRoles.resx">
+      <DependentUpon>201410311427402_UserRoles.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201410311432313_UserInfo.resx">
+      <DependentUpon>201410311432313_UserInfo.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

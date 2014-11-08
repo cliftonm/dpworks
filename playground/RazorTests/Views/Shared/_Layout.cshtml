@@ -1,32 +1,75 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>@ViewBag.Title - My ASP.NET MVC Application</title>
-        <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-        <meta name="viewport" content="width=device-width" />
-        @Styles.Render("~/Content/css")
-        @Scripts.Render("~/bundles/modernizr")
-    </head>
-    <body>
-        <nav class="navbar navbar-default" role="navigation">
-            <div class="btn-group navbar-right">
-                <div class="padding-top8">
-                    <button type="button" class="btn btn-default">@Html.ActionLink("Home", "Index", "Home")</button>
-                    <button type="button" class="btn btn-default">@Html.ActionLink("About", "About", "Home")</button>
-                    <button type="button" class="btn btn-default">@Html.ActionLink("Contact", "Contact", "Home")</button>
-                </div>
-            </div>
-        </nav>
+  <head>
+      <meta charset="utf-8" />
+      <title>@ViewBag.Title</title>
+      <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+      <script src="~/Scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
+      <script src="~/Scripts/bootstrap.min.js" type="text/javascript"></script>
+      <link rel="stylesheet" href="~/Content/bootstrap.min.css">
+      <link rel="stylesheet" href="~/Content/Site.css">
+      <meta name="viewport" content="width=device-width" />
+      <!-- TODO: The odd thing is, even when we include this, we still have to explicitly link the bootstrap.min.css file -->
+      <!-- [at]Styles.Render("~/Content/css") --> 
+      @Scripts.Render("~/bundles/modernizr")
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <a class="navbar-brand" href="#">DPW Works!</a>
+        <div class="btn-group navbar-right">
+            <div class="padding-top8 padding-right20">
+               <button type="button" class="btn btn-default">@Html.ActionLink("Home", "Index", "Home")</button>
+               <button type="button" class="btn btn-default">@Html.ActionLink("About", "About", "Home")</button>
+               <button type="button" class="btn btn-default">@Html.ActionLink("Contact", "Contact", "Home")</button>
+             </div>
+        </div>
+    </nav>
 
-        @RenderBody()
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
 
-        <footer>
-            <div class="text-center padding-top8">&copy; @DateTime.Now.Year - dpworks.org<br />
+          <!-- site-wide admin page stuff -->
+          <ul class="nav nav-sidebar">
+            <li><a href="#">Sites</a></li>
+            <li><a href="#">Users</a></li>
+            <li><a href="#">Roles</a></li>
+          </ul>
+
+          <!-- admin stuff : when the user is a site admin, we show this
+          <ul class="nav nav-sidebar">
+            <li><a href="#">Users</a></li>
+            <li><a href="#">Roles</a></li>
+          </ul>
+            -->
+
+          <!-- user stuff -->
+            <!-- we see this only when we have a site selected. -->
+          <ul class="nav nav-sidebar">
+            <li><a href="">Create Estimate</a></li>
+            <li><a href="">View Estimates</a></li>
+            <li><a href="">Reports</a></li>
+            <li><a href="">Preferences</a></li>
+            <li><a href="">Account Settings</a></li>
+          </ul>
+
+          <!-- unregistered and registered users -->
+          <ul class="nav nav-sidebar">
+            <li><a href="">Report A Problem</a></li>
+            <li><a href="">Contact Us</a></li>
+            <li class="active"><a href="">Sign In</a></li>
+          </ul>
+        </div>
+
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+           @RenderBody()
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="text-center padding-top8">&copy; @DateTime.Now.Year - dpworks.org<br />
             Developed by <a href="http://www.marcclifton.com" target="_blank">Marc Clifton</a></div>
-        </footer>
-
-        @Scripts.Render("~/bundles/jquery")
-        @RenderSection("scripts", required: false)
-    </body>
+    </footer>
+  </body>
 </html>

@@ -16,10 +16,14 @@ namespace RazorTests.Models
 		}
 
 		public DbSet<UserProfile> UserProfiles { get; set; }
+		public DbSet<SiteProfile> SiteProfiles { get; set; }
+		public DbSet<Role> Roles { get; set; }
+		public DbSet<UserRole> UserRoles { get; set; }
+		public DbSet<UserInfo> UserInfo { get; set; }
 	}
 
 	/// <summary>
-	/// WebSecurity table.  This is all that it can contain.
+	/// WebSecurity table.
 	/// </summary>
 	[Table("UserProfile")]
 	public class UserProfile
@@ -30,18 +34,68 @@ namespace RazorTests.Models
 		public string UserName { get; set; }
 	}
 
+	/// <summary>
+	/// WebSecurity table.
+	/// </summary>
+	[Table("webpages_Roles")]
+	public class Role
+	{
+		[Key]
+		[DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
+		public int RoleId { get; set; }
+		
+		[MaxLength(256)]
+		public string RoleName { get; set; }
+	}
+
+	[Table("webpages_UsersInRoles")]
+	public class UserRole
+	{
+		[Key]
+		public int UserId { get; set; }		// FK field
+
+		[Required]
+		public int RoleId { get; set; }		// FK field
+
+		[ForeignKey("UserId")]
+		public UserProfile UserProfile { get; set; }		// Relationship
+
+		[ForeignKey("RoleId")]								// Relationship
+		public Role Role { get; set; }
+	}
+
 	[Table("UserInfo")]
 	public class UserInfo
 	{
 		[Key]
 		[DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
-		public int UserInfoId { get; set; }
+		public int Id { get; set; }
+
+		[Required]
 		public int UserId { get; set; }					// FK to UserProfile.UserId
+
+		[Required]
 		public int SiteId { get; set; }					// FK to SiteId
+
+		[ForeignKey("UserId")]
+		public UserProfile UserProfile { get; set; }
+
+		[ForeignKey("SiteId")]
+		public SiteProfile SiteProfile { get; set; }
+
+		[Required]
 		public string FirstName { get; set; }
+
+		[Required]
 		public string LastName { get; set; }
+
+		[Required]
 		public string Email { get; set; }
+
+		[Required]
 		public string RegistrationToken { get; set; }
+
+		[Required]
 		public bool Activated { get; set; }
 	}
 

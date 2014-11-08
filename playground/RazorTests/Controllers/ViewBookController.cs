@@ -1,21 +1,118 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
-
+using System.Web.Mvc.Html;			// needed for HtmlHelper class extensions.
 using WebMatrix.Data;
 
 namespace RazorTests.Controllers
 {
+	public static class MarcHelpers
+	{
+		// http://stackoverflow.com/questions/621235/using-htmlhelper-in-a-controller
+		public static HtmlHelper GetHtmlHelper(this Controller controller)
+		{
+			// If we don't fully initialize the view context (in order words, we can't just do "new ViewContext") then the call to, say, "htmlHelper.TextBox(...)" fails with a null reference exception.
+			var viewContext = new ViewContext(controller.ControllerContext, new FakeView(), controller.ViewData, controller.TempData, TextWriter.Null);
+			return new HtmlHelper(viewContext, new ViewPage());
+		}
+	}
+
+	public class FakeView : IView
+	{
+		public void Render(ViewContext viewContext, TextWriter writer)
+		{
+			throw new InvalidOperationException();
+		}
+	}
+
     public class ViewBookController : Controller
     {
-        //
-        // GET: /EditBook/
+		public ActionResult GenericGrid()
+		{
+			var books = InitVars();
+			HtmlHelper helper = this.GetHtmlHelper();
+
+			WebGrid grid = new WebGrid(books, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
+			
+			WebGridColumn col1 = grid.Column("", "", (item) => GetEditButtons(item), "col1", true);
+			WebGridColumn col2 = grid.Column("Title", "Title", (item) => GetTextControl(helper, "Title", "title", item.Title), "col2", true);
+			WebGridColumn col3 = grid.Column("AuthorId", "Author", (item) => GetDropDownList(helper, ViewBag.Authors, "AuthorId", "authorname", item.AuthorID.ToString(), item.AuthorName), "col3", true);
+			WebGridColumn col4 = grid.Column("CategoryId", "Category", (item) => GetDropDownList(helper, ViewBag.Categories, "CategoryId", "category", item.CategoryID.ToString(), item.Category), "col4", true);
+			WebGridColumn col5 = grid.Column("ISBN", "ISBN", (item) => GetTextControl(helper, "ISBN", "isbn", item.ISBN), "col5", true);
+			WebGridColumn col6 = grid.Column("Harback", "Harback", (item) => GetCheckBox(helper, "Hardback", item.Hardback), "col6", true);
+			List<WebGridColumn> columnSet = new List<WebGridColumn>() {col1, col2, col3, col4, col5, col6};
+
+			ViewBag.Grid = grid;
+			ViewBag.ColumnSet = columnSet;
+/*
+			ViewBag.fncPageInit = new HtmlString("$(function () {"+
+                "$('.edit-mode').hide();"+
+                "initializeFormEvents();"+
+                "initializeGridItemEvents();"+
+				"});");
+
+			ViewBag.fncAddItem = new HtmlString("            function initializeFormEvents() {
+                $('#add').on('click', function () {addBook($(this));});
+            }
+*/
+
+			return View();
+		}
+
+		public object GetEditButtons(dynamic item)
+		{
+			int bookID = item.BookId;
+
+			return new HtmlString("<button class='delete-item display-mode' id='"+bookID+"'>Delete</button>" +
+                   "<button class='edit-item display-mode' id='"+bookID+"'>Edit</button>" +
+                   "<button class='save-item edit-mode edit-width' id='"+bookID+"'>Save</button>");
+		}
+
+		public object GetTextControl(HtmlHelper helper, string name, string id, string value)
+		{
+			var tb = helper.TextBox(name, value, new { @class = "edit-mode", size = "45" });
+
+			return new HtmlString("<span id='"+id+"' class='display-mode'>" + value + "</span>" + tb.ToString());
+		}
+
+		public object GetDropDownList(HtmlHelper helper, IEnumerable items, string id, string name, string idValue, string textValue)
+		{
+			//<span id="authorname" class="display-mode">@item.AuthorName</span>
+			//@Html.DropDownList("AuthorId", new SelectList(authors, "Value", "Text", @item.AuthorId), new {@class="edit-mode"})
+			string text1 = "<span id='" + name + "' class='display-mode'>" + textValue + "</span>";
+			string text2 = helper.DropDownList(id, new SelectList(items, "Value", "Text", idValue), new { @class = "edit-mode" }).ToString();
+
+			return new HtmlString(text1 + text2);
+		}
+
+		public object GetCheckBox(HtmlHelper helper, string name, bool value)
+		{
+			var cb1 = helper.CheckBox(name, value, new { @class = "edit-mode" });
+			var cb2 = helper.CheckBox(name.ToLower() + "-display", value, new { disabled = "disabled" });
+			string text1 = "<span class='display-mode'>" + cb2.ToString() + "</span>";
+			string text2 = cb1.ToString();
+
+			return new HtmlString(text1 + text2);
+		}
 
         public ActionResult Index()
         {
+			var books = InitVars();
+
+			var grid = new WebGrid(books, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
+
+			ViewBag.Grid = grid;
+
+            return View();
+        }
+
+		protected IEnumerable<dynamic> InitVars()
+		{
 			var db = Database.Open("Books");
 
 			var books = db.Query(@"SELECT b.BookId, b.Title, b.ISBN, b.AuthorId, b.CategoryId, 
@@ -40,14 +137,11 @@ namespace RazorTests.Controllers
 									Text = author.AuthorName
 								});
 
-			var grid = new WebGrid(books, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
-
-			ViewBag.Grid = grid;
 			ViewBag.Categories = categories;
 			ViewBag.Authors = authors;
 
-            return View();
-        }
+			return books;
+		}
 
 		public ActionResult GetAuthors()
 		{
@@ -119,3 +213,4 @@ namespace RazorTests.Controllers
 		}
     }
 }
+
