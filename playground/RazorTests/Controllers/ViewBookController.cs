@@ -47,6 +47,7 @@ namespace RazorTests.Controllers
 		public Control ControlType { get; set; }
 		public string ID { get; set; }
 		public string ColumnID { get; set; }
+		public string ColumnSize { get; set; }
 
 		// For collection controls:
 		public IEnumerable Items { get; set; }
@@ -65,9 +66,9 @@ namespace RazorTests.Controllers
 			Columns = new List<ColumnMetadata>();
 		}
 
-		public void AddColumn(string columnID, string id, ColumnMetadata.Control ctrlType, string colName, string headerText)
+		public void AddColumn(string columnID, string id, ColumnMetadata.Control ctrlType, string colName, string headerText, string columnSize)
 		{
-			Columns.Add(new ColumnMetadata() { ColumnID = columnID, ID = id, ControlType = ctrlType, ColumnName = colName, HeaderText = headerText });
+			Columns.Add(new ColumnMetadata() { ColumnID = columnID, ID = id, ControlType = ctrlType, ColumnName = colName, HeaderText = headerText, ColumnSize = columnSize });
 		}
 
 		public void AddColumn(string columnID, string id, ColumnMetadata.Control ctrlType, string colName, string headerText, IEnumerable items, string idFieldName, string textFieldName, string selectedID, string selectedText)
@@ -123,17 +124,17 @@ namespace RazorTests.Controllers
 			
 			// Initialize grid metadata
 			GridMetadata gridMetadata = new GridMetadata();
-			gridMetadata.AddColumn("col2", "title", ColumnMetadata.Control.TextBox, "Title", "Title");
+			gridMetadata.AddColumn("col2", "title", ColumnMetadata.Control.TextBox, "Title", "Title", "45");
 			gridMetadata.AddColumn("col3", "AuthorId", ColumnMetadata.Control.DropDownList, "AuthorId", "Author", ViewBag.Authors, "AuthorId", "authorname", "AuthorId", "AuthorName");
-			gridMetadata.AddColumn("col4", "CategoryId", ColumnMetadata.Control.DropDownList, "CategoryId", "CategoryId", ViewBag.Categories, "CategoryId", "category", "CategoryId", "Category");
-			gridMetadata.AddColumn("col5", "isbn", ColumnMetadata.Control.TextBox, "ISBN", "ISBN");
-			gridMetadata.AddColumn("col6", "Harback", ColumnMetadata.Control.CheckBox, "Hardback", "Hardback");
+			gridMetadata.AddColumn("col4", "CategoryId", ColumnMetadata.Control.DropDownList, "CategoryId", "Category", ViewBag.Categories, "CategoryId", "category", "CategoryId", "Category");
+			gridMetadata.AddColumn("col5", "isbn", ColumnMetadata.Control.TextBox, "ISBN", "ISBN", "20");
+			gridMetadata.AddColumn("col6", "Harback", ColumnMetadata.Control.CheckBox, "Hardback", "Hardback", "2");
 
 			// Initialize grid
 			WebGrid grid = new WebGrid(books, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
 
 			List<WebGridColumn> columnSet = new List<WebGridColumn>();
-			columnSet.Add(grid.Column("", "", (item) => GetEditButtons(item), "col1", true));
+			columnSet.Add(grid.Column("", "", (item) => GetEditButtons(item.BookId), "col1", true));
 
 			foreach (ColumnMetadata cm in gridMetadata.Columns)
 			{
@@ -145,7 +146,7 @@ namespace RazorTests.Controllers
 						wgc = grid.Column(cm.ColumnName, cm.HeaderText, (item) =>
 							{
 								// PropertyInfo pi = ((Type)item.GetType()).GetProperty(cm.ColumnName);
-								return GetTextControl(helper, cm.ColumnName, cm.ID, item[cm.ColumnName].ToString());
+								return GetTextControl(helper, cm.ColumnID, cm.ColumnName, cm.ID, item[cm.ColumnName].ToString(), cm.ColumnSize);
 							}, cm.ColumnID, true);
 						break;
 
@@ -177,18 +178,17 @@ namespace RazorTests.Controllers
 			return View();
 		}
 
-		public object GetEditButtons(dynamic item)
+		// id here is the item id, not an #id
+		public object GetEditButtons(int id)
 		{
-			int bookID = item.BookId;
-
-			return new HtmlString("<button class='delete-item display-mode' id='"+bookID+"'>Delete</button>" +
-                   "<button class='edit-item display-mode' id='"+bookID+"'>Edit</button>" +
-                   "<button class='save-item edit-mode edit-width' id='"+bookID+"'>Save</button>");
+			return new HtmlString("<button class='delete-item display-mode' id='" + id + "'>Delete</button>" +
+				   "<button class='edit-item display-mode' id='" + id + "'>Edit</button>" +
+				   "<button class='save-item edit-mode edit-width' id='" + id + "'>Save</button>");
 		}
 
-		public object GetTextControl(HtmlHelper helper, string name, string id, string value)
+		public object GetTextControl(HtmlHelper helper, string columnID, string name, string id, string value, string colSize)
 		{
-			var tb = helper.TextBox(name, value, new { @class = "edit-mode", size = "45" });
+			var tb = helper.TextBox(name, value, new { @class = "edit-mode", size = colSize });
 
 			return new HtmlString("<span id='"+id+"' class='display-mode'>" + value + "</span>" + tb.ToString());
 		}
@@ -275,7 +275,7 @@ namespace RazorTests.Controllers
 		[HttpPost]
 		public ActionResult DeleteBook()
 		{
-			var bookId = Request["BookId"];
+			var bookId = Request["ItemId"];
 			var db = Database.Open("Books");
 			var data = db.Execute(@"delete from Books where BookID=@0", bookId);
 
@@ -286,7 +286,7 @@ namespace RazorTests.Controllers
 		[HttpPost]
 		public ActionResult SaveChanges()
 		{
-			var bookId = Request["BookId"];
+			var bookId = Request["ItemId"];
 			var title = Request["Title"];
 			var authorId = Request["AuthorId"];
 			var categoryId = Request["CategoryId"];

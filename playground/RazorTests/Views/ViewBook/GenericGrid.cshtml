@@ -6,7 +6,6 @@
     var inlineNewRow = ViewBag.InlineNewRow;
 }
 
-
         <link rel="stylesheet" href="~/Styles/StyleSheet.css" type="text/css" />
 
         <script>
@@ -89,32 +88,37 @@
 
             function saveBook(element) {
                 var tr = element.parents('tr:first');
-                var bookId = element.prop('id');
+                var itemId = element.prop('id');
                 var title = tr.find('#Title').val();
                 var authorId = tr.find('#AuthorId').val();
                 var categoryId = tr.find('#CategoryId').val();
                 var authorName = tr.find("#AuthorId option:selected").text();
                 var categoryName = tr.find("#CategoryId option:selected").text();
                 var isbn = tr.find('#ISBN').val();
-                var hardback = tr.find('#Hardback').attr('checked') ? true : false;
+                // This doesn't work:
+                // var hardback = tr.find('#Hardback').attr('checked') ? true : false;
+                // Possibly because of a comment I found on SO: "When a user manually clicks the checkbox, the checkbox will fail to be set using the Attr solution in chrome and firefox, and internet explorer."
+                // We have to use:
+                var hardback = tr.find("#Hardback").is(":checked");
 
                 // Update the display mode line:
                 tr.find('#title').text(title);
                 tr.find('#authorname').text(authorName);
                 tr.find('#category').text(categoryName);
                 tr.find('#isbn').text(isbn);
-                tr.find('#hardback-display').removeAttr("disabled").attr('checked', hardback).attr('disabled', true);
+                // Also, as per http://stackoverflow.com/questions/426258/checking-a-checkbox-with-jquery, we have to use ".prop" for checking/unchecking checkboxes, not ".attr", as .attr is deprecated.
+                tr.find('#hardback-display').removeAttr("disabled").prop('checked', hardback).attr('disabled', true);
 
                 // Post the data so the server saves it.
                 $.post(
                     '/ViewBook/SaveChanges',
-                    { BookId: bookId, Title: title, AuthorId: authorId, CategoryId: categoryId, ISBN: isbn, Hardback: hardback },
-                    function (bookID) {
-                        var newBookID = bookID.BookId;
+                    { ItemId: itemId, Title: title, AuthorId: authorId, CategoryId: categoryId, ISBN: isbn, Hardback: hardback },
+                    function (book) {
+                        var newItemId = book.BookId;
                         // There's three id's, one for each button, that need to get updated.
-                        tr.find('#-1').attr("id", newBookID);
-                        tr.find('#-1').attr("id", newBookID);
-                        tr.find('#-1').attr("id", newBookID);
+                        tr.find('#-1').attr("id", newItemId);
+                        tr.find('#-1').attr("id", newItemId);
+                        tr.find('#-1').attr("id", newItemId);
                         $('#add').attr("disabled", false).removeClass("disabled");
                     });
 
@@ -128,8 +132,8 @@
                 if (flag) {
                     var tr = element.parents('tr:first');
                     tr.fadeOut(400, function () { tr.remove(); });
-                    var bookId = element.prop('id');
-                    $.post('/ViewBook/DeleteBook', { BookId: bookId });
+                    var itemId = element.prop('id');
+                    $.post('/ViewBook/DeleteBook', { ItemId: itemId });
                 }
             };
         </script>
@@ -146,4 +150,5 @@
         </div>
         
         <button id="add">Add</button>
+
 
