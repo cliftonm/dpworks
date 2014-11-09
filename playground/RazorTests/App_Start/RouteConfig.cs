@@ -26,6 +26,12 @@ namespace RazorTests
 			);
 
 			routes.MapRoute(
+				name: "Account",
+				url: "{controller}/{action}/{id}",
+				defaults: new { controller = "Account", action = "Index", id = UrlParameter.Optional }
+			);
+
+			routes.MapRoute(
 				name: "RoleManagment",
 				url: "{controller}/{action}/{id}",
 				defaults: new { controller = "Admin", action = "RoleManagement", id = UrlParameter.Optional }

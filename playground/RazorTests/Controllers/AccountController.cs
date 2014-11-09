@@ -59,7 +59,7 @@ namespace RazorTests.Controllers
 		//
 		// GET: /Account/Register
 
-		[AllowAnonymous]
+		[Authorize]
 		public ActionResult Register()
 		{
 			return View();
@@ -69,7 +69,6 @@ namespace RazorTests.Controllers
 		// POST: /Account/Register
 
 		[HttpPost]
-		// [AllowAnonymous]
 		[ValidateAntiForgeryToken]
 		[Authorize]
 		public ActionResult Register(RegisterModel model)
@@ -94,6 +93,7 @@ namespace RazorTests.Controllers
 		}
 
 		[HttpPost]
+		[ValidateAntiForgeryToken]
 		[Authorize]
 		public ActionResult RegisterNewUser(RegisterNewUserModel model)
 		{

@@ -64,3 +64,10 @@ footer {
 	float: left;
 	position: relative;
 }
+
+/* !!! Don't forget to do a page refresh in the browser, at it cashes style sheet stuff !!! */
+
+.btn-topbar {
+	color:#6078BF;
+}
+

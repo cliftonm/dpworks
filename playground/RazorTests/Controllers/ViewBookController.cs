@@ -55,6 +55,8 @@ namespace RazorTests.Controllers
 		public string TextFieldName { get; set; }
 		public string SelectedID { get; set; }
 		public string SelectedText { get; set; }
+		public string SelectMeText { get; set; }
+		public string GetListPath { get; set; }
 	}
 
 	public class GridMetadata
@@ -71,9 +73,9 @@ namespace RazorTests.Controllers
 			Columns.Add(new ColumnMetadata() { ColumnID = columnID, ID = id, ControlType = ctrlType, ColumnName = colName, HeaderText = headerText, ColumnSize = columnSize });
 		}
 
-		public void AddColumn(string columnID, string id, ColumnMetadata.Control ctrlType, string colName, string headerText, IEnumerable items, string idFieldName, string textFieldName, string selectedID, string selectedText)
+		public void AddColumn(string columnID, string id, ColumnMetadata.Control ctrlType, string colName, string headerText, IEnumerable items, string idFieldName, string textFieldName, string selectedID, string selectedText, string selectMeText, string getListPath)
 		{
-			Columns.Add(new ColumnMetadata() { ColumnID = columnID, ID = id, ControlType = ctrlType, ColumnName = colName, HeaderText = headerText, Items=items, IdFieldName=idFieldName, TextFieldName=textFieldName, SelectedID=selectedID, SelectedText=selectedText });
+			Columns.Add(new ColumnMetadata() { ColumnID = columnID, ID = id, ControlType = ctrlType, ColumnName = colName, HeaderText = headerText, Items = items, IdFieldName = idFieldName, TextFieldName = textFieldName, SelectedID = selectedID, SelectedText = selectedText, SelectMeText = selectMeText, GetListPath = getListPath });
 		}
 
 		/*
@@ -261,6 +263,70 @@ namespace RazorTests.Controllers
 			
 			return new HtmlString(sb.ToString());
 		}
+
+		/*
+                var authorList = newRow.find("#AuthorId");
+                var categoryList = newRow.find("#CategoryId");
+                authorList.append($('<option/>').attr('value', '').text('-- Select Author --'));
+                categoryList.append($('<option/>').attr('value', '').text('-- Select Category --'));
+
+                // Get the list of authors and populate the select box.
+                $.getJSON('/ViewBook/GetAuthors', function (authors) {
+                    $.each($.parseJSON(authors), function (index, author) {
+                        authorList.append($('<option/>').attr('value', author.AuthorId).text(author.Author));
+                    });
+                });
+
+                // Get the list of categories and populate the select box.
+                $.getJSON('/ViewBook/GetCategories', function (categories) {
+                    $.each($.parseJSON(categories), function (index, category) {
+                        categoryList.append($('<option/>').attr('value', category.CategoryId).text(category.Category));
+                    });
+                });
+		*/
+		public HtmlString PopulateDropDownLists()
+		{
+			StringBuilder sb = new StringBuilder();
+
+			List<ColumnMetadata> dropDownControls = Columns.Where(c => c.ControlType == ColumnMetadata.Control.DropDownList).ToList();
+
+			foreach (ColumnMetadata cm in dropDownControls)
+			{
+				// var authorList = newRow.find("#AuthorId");
+
+				string listName = cm.ID + "List";
+				sb.Append("var ");
+				sb.Append(listName);
+				sb.Append(" = newRow.find('#");
+				sb.Append(cm.ID);
+				sb.Append("');\r\n");
+				
+				// authorList.append($('<option/>').attr('value', '').text('-- Select Author --'));
+
+				sb.Append(listName);
+				sb.Append(".append($('<option/>').attr('value', '').text('");
+				sb.Append(cm.SelectMeText);
+				sb.Append("'));\r\n");
+
+				// $.getJSON('/ViewBook/GetAuthors', function (authors) {
+                //   $.each($.parseJSON(authors), function (index, author) {
+                //      authorList.append($('<option/>').attr('value', author.AuthorId).text(author.Author));
+                //   });
+                // });
+
+				sb.Append("$.getJSON('");
+				sb.Append(cm.GetListPath);
+				sb.Append("', function (items) {$.each($.parseJSON(items), function (index, item) {");
+				sb.Append(listName);
+				sb.Append(".append($('<option/>').attr('value', item.");
+				sb.Append(cm.IdFieldName);
+				sb.Append(").text(item.");
+				sb.Append(cm.HeaderText);			// !!! UGH - we're using the header text as the field name here.
+				sb.Append("));});});\r\n");
+			}
+
+			return new HtmlString(sb.ToString());
+		}
 	}
 
     public class ViewBookController : Controller
@@ -273,8 +339,8 @@ namespace RazorTests.Controllers
 			// Initialize grid metadata
 			GridMetadata gridMetadata = new GridMetadata();
 			gridMetadata.AddColumn("col2", "title", ColumnMetadata.Control.TextBox, "Title", "Title", "45");
-			gridMetadata.AddColumn("col3", "AuthorId", ColumnMetadata.Control.DropDownList, "AuthorId", "Author", ViewBag.Authors, "AuthorId", "authorname", "AuthorId", "AuthorName");
-			gridMetadata.AddColumn("col4", "CategoryId", ColumnMetadata.Control.DropDownList, "CategoryId", "Category", ViewBag.Categories, "CategoryId", "category", "CategoryId", "Category");
+			gridMetadata.AddColumn("col3", "AuthorId", ColumnMetadata.Control.DropDownList, "AuthorId", "Author", ViewBag.Authors, "AuthorId", "authorname", "AuthorId", "AuthorName", "-- Select Author --", "/ViewBook/GetAuthors");
+			gridMetadata.AddColumn("col4", "CategoryId", ColumnMetadata.Control.DropDownList, "CategoryId", "Category", ViewBag.Categories, "CategoryId", "category", "CategoryId", "Category", "-- Select Category --", "/ViewBook/GetCategories");
 			gridMetadata.AddColumn("col5", "isbn", ColumnMetadata.Control.TextBox, "ISBN", "ISBN", "20");
 			gridMetadata.AddColumn("col6", "Harback", ColumnMetadata.Control.CheckBox, "Hardback", "Hardback", "2");
 
@@ -328,7 +394,9 @@ namespace RazorTests.Controllers
 			ViewBag.EditGetters = gridMetadata.EditGetters();
 			ViewBag.DisplaySetters = gridMetadata.DisplaySetters();
 			ViewBag.PostPath = "/ViewBook/SaveChanges";
+			ViewBag.DeletePath = "/ViewBook/DeleteBook";
 			ViewBag.PostbackParams = gridMetadata.PostbackParams();
+			ViewBag.PopulateDropDownLists = gridMetadata.PopulateDropDownLists();
 
 			return View();
 		}
@@ -463,20 +531,6 @@ namespace RazorTests.Controllers
 				db.Execute(sql, title, authorId, categoryId, isbn, hardback, bookId);
 			}
 
-			// Not used, as the client updates itself.
-
-			/*
-			sql = @"SELECT b.Title, b.ISBN,  a.FirstName + ' ' + a.LastName AS AuthorName, c.Category, b.Hardback  
-            FROM Books b INNER JOIN Authors a ON b.AuthorId = a.AuthorId  
-            INNER JOIN Categories c ON b.CategoryId = c.CategoryId 
-            WHERE BookId = @0";
-			var result = db.QuerySingle(sql, bookId);
-			// Json.Write(result, Response.Output);
-			var jsonResult = System.Web.Helpers.Json.Encode(result);
-			return Json(jsonResult, JsonRequestBehavior.AllowGet);
-			*/
-
-			// return new EmptyResult();
 			return Json(new { ItemId = bookId });
 		}
     }

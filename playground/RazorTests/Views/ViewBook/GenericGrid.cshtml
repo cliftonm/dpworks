@@ -59,26 +59,7 @@
                 newRow.find('.edit-mode').show();
                 newRow.find('.display-mode').hide();
 
-                // Create the first "select author/category" entry.
-                // $('#NewAuthorId').append($('<option/>').attr('value', '').text('-- Select Author --'));
-                var authorList = newRow.find("#AuthorId");
-                var categoryList = newRow.find("#CategoryId");
-                authorList.append($('<option/>').attr('value', '').text('-- Select Author --'));
-                categoryList.append($('<option/>').attr('value', '').text('-- Select Category --'));
-
-                // Get the list of authors and populate the select box.
-                $.getJSON('/ViewBook/GetAuthors', function (authors) {
-                    $.each($.parseJSON(authors), function (index, author) {
-                        authorList.append($('<option/>').attr('value', author.AuthorId).text(author.Author));
-                    });
-                });
-
-                // Get the list of categories and populate the select box.
-                $.getJSON('/ViewBook/GetCategories', function (categories) {
-                    $.each($.parseJSON(categories), function (index, category) {
-                        categoryList.append($('<option/>').attr('value', category.CategoryId).text(category.Category));
-                    });
-                });
+                @ViewBag.PopulateDropDownLists
             }
 
             function editBook(element) {
@@ -120,7 +101,7 @@
                     var tr = element.parents('tr:first');
                     tr.fadeOut(400, function () { tr.remove(); });
                     var itemId = element.prop('id');
-                    $.post('/ViewBook/DeleteBook', { ItemId: itemId });
+                    $.post('@ViewBag.DeletePath', { ItemId: itemId });
                 }
             };
         </script>

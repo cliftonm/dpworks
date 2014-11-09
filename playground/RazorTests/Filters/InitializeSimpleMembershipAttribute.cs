@@ -38,7 +38,15 @@ namespace RazorTests.Filters
 						}
 					}
 
-					WebSecurity.InitializeDatabaseConnection("DefaultConnection", "UserProfile", "UserId", "UserName", autoCreateTables: true);
+					// See: http://stackoverflow.com/questions/13073247/websecurity-initializedatabaseconnection-method-can-be-called-only-once
+					// This call is being made in _AppStart.  I bet we don't need this here at all now.
+					// The reason it's being called in _AppStart is because I enabled "do migration on startup."
+					// The more I work with Razor, the more I am beginning to despise it -- it gets IN THE WAY, rather than getting OUT OF THE WAY.
+					// I added this test, then commented out the whole piece of shyte.
+					//if (!WebSecurity.Initialized)
+					//{
+					//	WebSecurity.InitializeDatabaseConnection("DefaultConnection", "UserProfile", "UserId", "UserName", autoCreateTables: true);
+					//}
 				}
 				catch (Exception ex)
 				{

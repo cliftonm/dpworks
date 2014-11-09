@@ -18,12 +18,14 @@
         <a class="navbar-brand" href="#">DPW Works!</a>
         <div class="btn-group navbar-right">
             <div class="padding-top8 padding-right20">
-               <button type="button" class="btn btn-default">@Html.ActionLink("Home", "Index", "Home")</button>
-               <button type="button" class="btn btn-default">@Html.ActionLink("About", "About", "Home")</button>
-               <button type="button" class="btn btn-default">@Html.ActionLink("Contact", "Contact", "Home")</button>
+               <button type="button" class="btn btn-default btn-topbar">@Html.ActionLink("Home", "Index", "Home")</button>
+               <button type="button" class="btn btn-default btn-topbar" onclick="location.href='@Url.Action("About", "Home")'">About</button>
+               <button type="button" class="btn btn-default btn-topbar">@Html.ActionLink("Contact", "Contact", "Home")</button>
              </div>
         </div>
     </nav>
+
+      // onclick="location.href='@Url.Action("Create", "User")'"
 
     <div class="container-fluid">
       <div class="row">
@@ -63,6 +65,9 @@
 
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
            @RenderBody()
+            <!-- Needed for the default account cshtml stuff, where at the end, you find [at]section Scripts {[at]Scripts.Render("~/bundles/jqueryval") }  -->
+            <!-- Of course, now every page requires a Scripts section!  WTF?!?!?! Must add the parameter false to indicate that the section is not required. -->
+           @RenderSection("Scripts", false)
         </div>
       </div>
     </div>
