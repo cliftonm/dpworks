@@ -77,15 +77,13 @@ namespace RazorTests.Controllers
 		}
 
 		/*
-			"<td class='col1'><button class='delete-item display-mode' id='-1'>Delete</button> <button class='edit-item display-mode' id='-1'>Edit</button> <button class='save-new-item edit-mode' id='-1'>Save</button>" +
-			"<td class='col2'><span id='title' class='display-mode'/> <input name='Title' id='Title' class='edit-mode'/></td>" +
-			"<td class='col3'><span id='authorname' class='display-mode'/> <select name='AuthorId' id='AuthorId' class='edit-mode'></select></td>" +
-			"<td class='col4'><span id='category' class='display-mode'/> <select name='CategoryId' id='CategoryId' class='edit-mode'></select></td>" +
-			"<td class='col5'><span id='isbn' class='display-mode'/> <input name='ISBN' id='ISBN' class='edit-mode'/></td>" +
-			"<td class='col6'><input id='hardback-display' class='display-mode' type='checkbox' name='hardback-display'/> <input name='HardBack' id='Hardback' type='checkbox' class='edit-mode'/></td>");
-
-		 */
-
+		"<td class='col1'><button class='delete-item display-mode' id='-1'>Delete</button> <button class='edit-item display-mode' id='-1'>Edit</button> <button class='save-new-item edit-mode' id='-1'>Save</button>" +
+		"<td class='col2'><span id='title' class='display-mode'/> <input name='Title' id='Title' class='edit-mode'/></td>" +
+		"<td class='col3'><span id='authorname' class='display-mode'/> <select name='AuthorId' id='AuthorId' class='edit-mode'></select></td>" +
+		"<td class='col4'><span id='category' class='display-mode'/> <select name='CategoryId' id='CategoryId' class='edit-mode'></select></td>" +
+		"<td class='col5'><span id='isbn' class='display-mode'/> <input name='ISBN' id='ISBN' class='edit-mode'/></td>" +
+		"<td class='col6'><input id='hardback-display' class='display-mode' type='checkbox' name='hardback-display'/> <input name='HardBack' id='Hardback' type='checkbox' class='edit-mode'/></td>");
+		*/
 		public HtmlString GetInlineNewRow()
 		{
 			StringBuilder sb = new StringBuilder();
@@ -112,6 +110,156 @@ namespace RazorTests.Controllers
 			}
 
 			return new HtmlString("\""+sb.ToString()+"\"");
+		}
+
+		/*
+		var title = tr.find('#Title').val();
+		var authorId = tr.find('#AuthorId').val();
+		var categoryId = tr.find('#CategoryId').val();
+		var authorName = tr.find("#AuthorId option:selected").text();
+		var categoryName = tr.find("#CategoryId option:selected").text();
+		var isbn = tr.find('#ISBN').val();
+        var hardback = tr.find("#Hardback").is(":checked");
+		*/
+		public HtmlString EditGetters()
+		{
+			StringBuilder sb = new StringBuilder();
+
+			foreach (ColumnMetadata cm in Columns)
+			{
+				switch (cm.ControlType)
+				{
+					case ColumnMetadata.Control.TextBox:
+						sb.Append("var edited");
+						sb.Append(cm.ColumnName);
+						sb.Append(" = tr.find('#");
+						sb.Append(cm.ColumnName);
+
+						sb.Append("').val();");
+						break;
+
+					case ColumnMetadata.Control.DropDownList:
+						sb.Append("var edited");
+						sb.Append(cm.SelectedText);
+						sb.Append(" = tr.find('#");
+						sb.Append(cm.ColumnName);
+						sb.Append(" option:selected').text();\r\n");
+
+						// We also need the ID
+						sb.Append("var edited");
+						sb.Append(cm.IdFieldName);
+						sb.Append(" = tr.find('#");
+						sb.Append(cm.IdFieldName);
+						sb.Append("').val();");
+						break;
+
+					case ColumnMetadata.Control.CheckBox:
+						sb.Append("var edited");
+						sb.Append(cm.ColumnName);
+						sb.Append(" = tr.find('#");
+						sb.Append(cm.ColumnName);
+
+						// This doesn't work:
+						// var hardback = tr.find('#Hardback').attr('checked') ? true : false;
+						// Possibly because of a comment I found on SO: "When a user manually clicks the checkbox, the checkbox will fail to be set using the Attr solution in chrome and firefox, and internet explorer."
+						// We have to use .is(:checked)
+						sb.Append("').is(':checked');");
+						break;
+				}
+
+				sb.Append("\r\n");
+			}
+
+			return new HtmlString(sb.ToString());
+		}
+
+		/*
+		tr.find('#title').text(title);
+		tr.find('#authorname').text(authorName);
+		tr.find('#category').text(categoryName);
+		tr.find('#isbn').text(isbn);
+		tr.find('#hardback-display').removeAttr("disabled").prop('checked', hardback).attr('disabled', true);
+		*/
+		public HtmlString DisplaySetters()
+		{
+			StringBuilder sb = new StringBuilder();
+
+			foreach (ColumnMetadata cm in Columns)
+			{
+				sb.Append("tr.find('#");
+
+				switch (cm.ControlType)
+				{
+					case ColumnMetadata.Control.TextBox:
+						sb.Append(cm.ColumnName.ToLower());
+						sb.Append("').text(");
+						sb.Append("edited");
+						sb.Append(cm.ColumnName);
+						sb.Append(");");
+						break;
+
+					case ColumnMetadata.Control.DropDownList:
+						sb.Append(cm.TextFieldName.ToLower());
+						sb.Append("').text(");
+						sb.Append("edited");
+						sb.Append(cm.SelectedText);
+						sb.Append(");");
+						break;
+
+					case ColumnMetadata.Control.CheckBox:
+						// Also, as per http://stackoverflow.com/questions/426258/checking-a-checkbox-with-jquery, we have to use ".prop" for checking/unchecking checkboxes, not ".attr", as .attr is deprecated.
+						sb.Append(cm.ColumnName.ToLower());
+						sb.Append("-display').removeAttr('disabled').prop('checked', edited");
+						sb.Append(cm.ColumnName);
+						sb.Append(").attr('disabled', true);");
+						break;
+				}
+
+				sb.Append("\r\n");
+			}
+
+			return new HtmlString(sb.ToString());
+		}
+
+		// {ItemId: itemId, Title: editedTitle, AuthorId: editedAuthorId, CategoryId: editedCategoryId, ISBN: editedISBN, Hardback: editedHardback}
+		public HtmlString PostbackParams()
+		{
+			StringBuilder sb = new StringBuilder();
+
+			sb.Append("{ItemId: itemId");
+
+			foreach (ColumnMetadata cm in Columns)
+			{
+				sb.Append(",");
+
+				switch (cm.ControlType)
+				{
+					case ColumnMetadata.Control.TextBox:
+						sb.Append(cm.ColumnName);
+						sb.Append(":");
+						sb.Append("edited");
+						sb.Append(cm.ColumnName);
+						break;
+
+					case ColumnMetadata.Control.DropDownList:
+						sb.Append(cm.IdFieldName);
+						sb.Append(":");
+						sb.Append("edited");
+						sb.Append(cm.IdFieldName);
+						break;
+
+					case ColumnMetadata.Control.CheckBox:
+						sb.Append(cm.ColumnName);
+						sb.Append(":");
+						sb.Append("edited");
+						sb.Append(cm.ColumnName);
+						break;
+				}
+			}
+
+			sb.Append("}");
+			
+			return new HtmlString(sb.ToString());
 		}
 	}
 
@@ -170,10 +318,17 @@ namespace RazorTests.Controllers
 
 				columnSet.Add(wgc);
 			}
-			
+
+			// Look at EngineContext.Current.Resolve<GenericController>() to be able to call the controller methods directly.
+			// See http://stackoverflow.com/questions/5960664/calling-a-method-in-the-controller
+
 			ViewBag.Grid = grid;
 			ViewBag.ColumnSet = columnSet;
 			ViewBag.InlineNewRow = gridMetadata.GetInlineNewRow();
+			ViewBag.EditGetters = gridMetadata.EditGetters();
+			ViewBag.DisplaySetters = gridMetadata.DisplaySetters();
+			ViewBag.PostPath = "/ViewBook/SaveChanges";
+			ViewBag.PostbackParams = gridMetadata.PostbackParams();
 
 			return View();
 		}
@@ -322,7 +477,7 @@ namespace RazorTests.Controllers
 			*/
 
 			// return new EmptyResult();
-			return Json(new { BookId = bookId });
+			return Json(new { ItemId = bookId });
 		}
     }
 }
