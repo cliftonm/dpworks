@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
@@ -30,36 +31,148 @@ namespace RazorTests.Controllers
 		}
 	}
 
+	public class ColumnMetadata
+	{
+		public enum Control
+		{
+			Unknown,
+			TextBox,
+			DropDownList,
+			CheckBox,
+			RadioButton,
+		}
+
+		public string ColumnName { get; set; }
+		public string HeaderText { get; set; }
+		public Control ControlType { get; set; }
+		public string ID { get; set; }
+		public string ColumnID { get; set; }
+
+		// For collection controls:
+		public IEnumerable Items { get; set; }
+		public string IdFieldName { get; set; }
+		public string TextFieldName { get; set; }
+		public string SelectedID { get; set; }
+		public string SelectedText { get; set; }
+	}
+
+	public class GridMetadata
+	{
+		public List<ColumnMetadata> Columns { get; protected set; }
+
+		public GridMetadata()
+		{
+			Columns = new List<ColumnMetadata>();
+		}
+
+		public void AddColumn(string columnID, string id, ColumnMetadata.Control ctrlType, string colName, string headerText)
+		{
+			Columns.Add(new ColumnMetadata() { ColumnID = columnID, ID = id, ControlType = ctrlType, ColumnName = colName, HeaderText = headerText });
+		}
+
+		public void AddColumn(string columnID, string id, ColumnMetadata.Control ctrlType, string colName, string headerText, IEnumerable items, string idFieldName, string textFieldName, string selectedID, string selectedText)
+		{
+			Columns.Add(new ColumnMetadata() { ColumnID = columnID, ID = id, ControlType = ctrlType, ColumnName = colName, HeaderText = headerText, Items=items, IdFieldName=idFieldName, TextFieldName=textFieldName, SelectedID=selectedID, SelectedText=selectedText });
+		}
+
+		/*
+			"<td class='col1'><button class='delete-item display-mode' id='-1'>Delete</button> <button class='edit-item display-mode' id='-1'>Edit</button> <button class='save-new-item edit-mode' id='-1'>Save</button>" +
+			"<td class='col2'><span id='title' class='display-mode'/> <input name='Title' id='Title' class='edit-mode'/></td>" +
+			"<td class='col3'><span id='authorname' class='display-mode'/> <select name='AuthorId' id='AuthorId' class='edit-mode'></select></td>" +
+			"<td class='col4'><span id='category' class='display-mode'/> <select name='CategoryId' id='CategoryId' class='edit-mode'></select></td>" +
+			"<td class='col5'><span id='isbn' class='display-mode'/> <input name='ISBN' id='ISBN' class='edit-mode'/></td>" +
+			"<td class='col6'><input id='hardback-display' class='display-mode' type='checkbox' name='hardback-display'/> <input name='HardBack' id='Hardback' type='checkbox' class='edit-mode'/></td>");
+
+		 */
+
+		public HtmlString GetInlineNewRow()
+		{
+			StringBuilder sb = new StringBuilder();
+
+			// Buttons
+			sb.Append("<td class='col1'><button class='delete-item display-mode' id='-1'>Delete</button> <button class='edit-item display-mode' id='-1'>Edit</button> <button class='save-new-item edit-mode' id='-1'>Save</button>");
+
+			foreach (ColumnMetadata cm in Columns)
+			{
+				switch (cm.ControlType)
+				{
+					case ColumnMetadata.Control.TextBox:
+						sb.Append("<td class='" + cm.ColumnID + "'><span id='" + cm.ID + "' class='display-mode'/> <input name='" + cm.ColumnName + "' id='" + cm.ColumnName + "' class='edit-mode'/></td>");
+						break;
+
+					case ColumnMetadata.Control.DropDownList:
+						sb.Append("<td class='" + cm.ColumnID + "'><span id='" + cm.TextFieldName + "' class='display-mode'/> <select name='" + cm.SelectedID + "' id='" + cm.SelectedID + "' class='edit-mode'></select></td>");
+						break;
+
+					case ColumnMetadata.Control.CheckBox:
+						sb.Append("<td class='" + cm.ColumnID + "'><input id='" + cm.ColumnName.ToLower() + "-display' class='display-mode' type='checkbox' name='" + cm.ColumnName.ToLower() + "-display'/> <input name='" + cm.ColumnName + "' id='" + cm.ColumnName + "' type='checkbox' class='edit-mode'/></td>");
+						break;
+				}
+			}
+
+			return new HtmlString("\""+sb.ToString()+"\"");
+		}
+	}
+
     public class ViewBookController : Controller
     {
 		public ActionResult GenericGrid()
 		{
 			var books = InitVars();
 			HtmlHelper helper = this.GetHtmlHelper();
-
-			WebGrid grid = new WebGrid(books, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
 			
-			WebGridColumn col1 = grid.Column("", "", (item) => GetEditButtons(item), "col1", true);
-			WebGridColumn col2 = grid.Column("Title", "Title", (item) => GetTextControl(helper, "Title", "title", item.Title), "col2", true);
-			WebGridColumn col3 = grid.Column("AuthorId", "Author", (item) => GetDropDownList(helper, ViewBag.Authors, "AuthorId", "authorname", item.AuthorID.ToString(), item.AuthorName), "col3", true);
-			WebGridColumn col4 = grid.Column("CategoryId", "Category", (item) => GetDropDownList(helper, ViewBag.Categories, "CategoryId", "category", item.CategoryID.ToString(), item.Category), "col4", true);
-			WebGridColumn col5 = grid.Column("ISBN", "ISBN", (item) => GetTextControl(helper, "ISBN", "isbn", item.ISBN), "col5", true);
-			WebGridColumn col6 = grid.Column("Harback", "Harback", (item) => GetCheckBox(helper, "Hardback", item.Hardback), "col6", true);
-			List<WebGridColumn> columnSet = new List<WebGridColumn>() {col1, col2, col3, col4, col5, col6};
+			// Initialize grid metadata
+			GridMetadata gridMetadata = new GridMetadata();
+			gridMetadata.AddColumn("col2", "title", ColumnMetadata.Control.TextBox, "Title", "Title");
+			gridMetadata.AddColumn("col3", "AuthorId", ColumnMetadata.Control.DropDownList, "AuthorId", "Author", ViewBag.Authors, "AuthorId", "authorname", "AuthorId", "AuthorName");
+			gridMetadata.AddColumn("col4", "CategoryId", ColumnMetadata.Control.DropDownList, "CategoryId", "CategoryId", ViewBag.Categories, "CategoryId", "category", "CategoryId", "Category");
+			gridMetadata.AddColumn("col5", "isbn", ColumnMetadata.Control.TextBox, "ISBN", "ISBN");
+			gridMetadata.AddColumn("col6", "Harback", ColumnMetadata.Control.CheckBox, "Hardback", "Hardback");
 
+			// Initialize grid
+			WebGrid grid = new WebGrid(books, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
+
+			List<WebGridColumn> columnSet = new List<WebGridColumn>();
+			columnSet.Add(grid.Column("", "", (item) => GetEditButtons(item), "col1", true));
+
+			foreach (ColumnMetadata cm in gridMetadata.Columns)
+			{
+				WebGridColumn wgc = null;
+
+				switch (cm.ControlType)
+				{
+					case ColumnMetadata.Control.TextBox:
+						wgc = grid.Column(cm.ColumnName, cm.HeaderText, (item) =>
+							{
+								// PropertyInfo pi = ((Type)item.GetType()).GetProperty(cm.ColumnName);
+								return GetTextControl(helper, cm.ColumnName, cm.ID, item[cm.ColumnName].ToString());
+							}, cm.ColumnID, true);
+						break;
+
+					case ColumnMetadata.Control.DropDownList:
+						wgc = grid.Column(cm.ID, cm.HeaderText, (item) =>
+							{
+								// PropertyInfo piID = ((Type)item.GetType()).GetProperty(cm.SelectedID);
+								// PropertyInfo piText = ((Type)item.GetType()).GetProperty(cm.SelectedText);
+								return GetDropDownList(helper, cm.Items, cm.IdFieldName, cm.TextFieldName, item[cm.SelectedID].ToString(), item[cm.SelectedText].ToString());
+							}, cm.ColumnID, true);
+						break;
+
+					case ColumnMetadata.Control.CheckBox:
+						wgc = grid.Column(cm.ColumnName, cm.HeaderText, (item) =>
+							{
+								// PropertyInfo pi = ((Type)item.GetType()).GetProperty(cm.ColumnName);
+								return GetCheckBox(helper, cm.ColumnName, item[cm.ColumnName]);
+							}, cm.ColumnID, true);
+						break;
+				}
+
+				columnSet.Add(wgc);
+			}
+			
 			ViewBag.Grid = grid;
 			ViewBag.ColumnSet = columnSet;
-/*
-			ViewBag.fncPageInit = new HtmlString("$(function () {"+
-                "$('.edit-mode').hide();"+
-                "initializeFormEvents();"+
-                "initializeGridItemEvents();"+
-				"});");
-
-			ViewBag.fncAddItem = new HtmlString("            function initializeFormEvents() {
-                $('#add').on('click', function () {addBook($(this));});
-            }
-*/
+			ViewBag.InlineNewRow = gridMetadata.GetInlineNewRow();
 
 			return View();
 		}
