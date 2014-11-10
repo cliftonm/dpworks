@@ -1,6 +1,4 @@
-﻿@model RazorTests.Models.LoginModel
-
-@{
+﻿@{
     ViewBag.Title = "Home Page";
 }
 
@@ -8,12 +6,17 @@
 
 <script>
     $(function () {
+        $('#RememberMe').hide();
     });
 
     function rememberMe() {
         $('.checkbox').toggleClass('show');
+        $('#RememberMe').prop("checked", !$('#RememberMe').prop("checked"));
     }
 
 </script>
+
+@Html.ValidationSummary(true)
 @Html.Partial("_BootstrapLogin")
 @Html.Partial("_ForgotPasswordFlyout")
+

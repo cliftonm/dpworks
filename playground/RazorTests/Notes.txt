@@ -1,0 +1,35 @@
+﻿My generic grid URL: ViewBook\GenericGrid
+
+
+An example form post button:
+
+@using (Html.BeginForm("Index", "Home"))
+{
+    <input type="submit" value="Login2" />
+}
+
+The resulting HTML is simple enough:
+
+<form action="/" method="post">    
+  <input type="submit" value="Login2" />
+</form>
+
+Note that action is "/" because the page is "Home/Index" which is equivalent to "/", so we have in the controller:
+
+		[HttpPost]
+		[AllowAnonymous]
+		public ActionResult Index(object p1)
+
+but I have no idea what the params should be.
+
+BTW, we should probably add back in:
+
+[ValidateAntiForgeryToken]
+
+and in the cshtml:
+
+@Html.AntiForgeryToken()
+
+Now, how does the blimey model work???
+
+		

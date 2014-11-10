@@ -12,7 +12,7 @@ using RazorTests.Models;
 
 namespace RazorTests.Controllers
 {
-	[Authorize]
+	// [Authorize]
 	[InitializeSimpleMembership]
 	public class AccountController : Controller
 	{
@@ -59,7 +59,7 @@ namespace RazorTests.Controllers
 		//
 		// GET: /Account/Register
 
-		[Authorize]
+		// [Authorize]
 		public ActionResult Register()
 		{
 			return View();
@@ -68,9 +68,9 @@ namespace RazorTests.Controllers
 		//
 		// POST: /Account/Register
 
+		// [Authorize]
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		[Authorize]
 		public ActionResult Register(RegisterModel model)
 		{
 			if (ModelState.IsValid)

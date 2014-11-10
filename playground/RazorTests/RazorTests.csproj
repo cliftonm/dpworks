@@ -162,7 +162,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
-    <Compile Include="Controllers\SiteController.cs" />
+    <Compile Include="Controllers\GridMetadata.cs" />
     <Compile Include="Controllers\ViewBookController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Filters\InitializeSimpleMembershipAttribute.cs" />
@@ -265,6 +265,7 @@
     <None Include="Properties\PublishProfiles\dpworks.org - Web Deploy.pubxml" />
     <None Include="Properties\PublishProfiles\dpworks.pubxml" />
     <None Include="Scripts\jquery-1.9.1-vsdoc.js" />
+    <Content Include="Notes.txt" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.9.1.js" />
@@ -334,6 +335,8 @@
     <Content Include="Views\Admin\RoleManagement.cshtml" />
     <Content Include="_AppStart.cshtml" />
     <Content Include="Views\ViewBook\GenericGrid.cshtml" />
+    <Content Include="Views\Shared\_GenericGrid.cshtml" />
+    <Content Include="Views\Admin\SiteManagement.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
