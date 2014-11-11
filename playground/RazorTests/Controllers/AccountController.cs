@@ -16,6 +16,12 @@ namespace RazorTests.Controllers
 	[InitializeSimpleMembership]
 	public class AccountController : Controller
 	{
+		[AllowAnonymous]
+		public ActionResult Register()
+		{
+			return View();
+		}
+
 		// !!! THIS METHOD IS ENABLED ONLY WHEN WE NEED TO SEED THE DB WITH A SITE-ADMIN USER !!!
 		// [Authorize]
 		[AllowAnonymous]

@@ -81,3 +81,8 @@ http://stackoverflow.com/questions/14864670/mvc4-azure-publishing-error-could-no
 http://docs.nuget.org/docs/start-here/using-the-package-manager-console
 http://anthonyfassett.blogspot.com/2013/11/updating-razor-20-to-30-with-aspnet-mvc.html
 
+
+Web mail on the host requires:
+<configuration>
+  <system.web>
+    <trust level="Full" originUrl=""/>

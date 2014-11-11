@@ -9,7 +9,7 @@ using System.Web.Helpers;		// For WebMail
 
 using WebMatrix.WebData;
 
-using RazorEngine;
+// using RazorEngine;
 
 using RazorTests.Models;
 
@@ -126,7 +126,6 @@ namespace RazorTests.Controllers
 			return Json(new { Name = site.Name });
 		}
 
-		/*
 		[AllowAnonymous]
 		public ActionResult EmailTest()
 		{
@@ -146,12 +145,12 @@ namespace RazorTests.Controllers
 			sr.Close();
 			s.Close();
 
-			string html = Razor.Parse(template, new { FirstName = "Marc", Token = "abc" });
+			// string html = Razor.Parse(template, new { FirstName = "Marc", Token = "abc" });
+			string html = "Hello World";
 
 			WebMail.Send(to: "marc.clifton@gmail.com", subject: "Test2", body: html);
 
 			return RedirectToAction("Index", "Home");
 		}
-		 */
 	}
 }

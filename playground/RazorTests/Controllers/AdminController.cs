@@ -20,7 +20,8 @@ namespace RazorTests.Controllers
 {
     public class AdminController : Controller
     {
-		[Authorize]
+		// Change this to Authorize for the production version.
+		[AllowAnonymous]
 		public ActionResult RoleManagement()
         {
             return View();
@@ -71,7 +72,12 @@ namespace RazorTests.Controllers
 		[Authorize]
 		public ActionResult DeleteSite()
 		{
-			var id = Request["ItemId"];
+			int id = Convert.ToInt32(Request["ItemId"]);
+			var context = new UsersContext();
+			SiteProfile sp = context.SiteProfiles.Find(id);
+
+			context.SiteProfiles.Remove(sp);
+			context.SaveChanges();
 
 			return new EmptyResult();
 		}
@@ -166,17 +172,17 @@ namespace RazorTests.Controllers
 		{
 			int id = Convert.ToInt32(Request["ItemId"]);
 			var context = new UsersContext();
-			UserProfile up = context.UserProfiles.Find(id);
-
+			UserInfo ui = context.UserInfo.Find(id);
+/*
 			// Delete the user info record if it exists.
-			UserInfo ui = context.UserInfo.SingleOrDefault(u => u.Email == up.UserName);
+			UserProfile up = context.UserProfiles.SingleOrDefault(u => u.UserName == ui.Email);
 
-			if (ui != null)
+			if (up != null)
 			{
-				context.UserInfo.Remove(ui);
+				context.UserProfiles.Remove(up);
 			}
-
-			context.UserProfiles.Remove(up);
+*/
+			context.UserInfo.Remove(ui);
 			context.SaveChanges();
 
 			return new EmptyResult();
@@ -241,7 +247,8 @@ namespace RazorTests.Controllers
 			sr.Close();
 			s.Close();
 
-			string html = Razor.Parse(template, new { FirstName = firstName, Token = token });
+ 			string html = Razor.Parse(template, new { FirstName = firstName, Token = token });
+//			string html = "";
 
 			WebMail.Send(to: email, subject: "Welcome to DPWorks", body: html);
 		}
