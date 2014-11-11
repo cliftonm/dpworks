@@ -149,6 +149,14 @@ http://msdn.microsoft.com/en-us/data/jj591583.aspx
 Great article on Various Ways to Pass Data from Controller to View in MVC:
 http://www.c-sharpcorner.com/UploadFile/abhikumarvatsa/various-ways-to-pass-data-from-controller-to-view-in-mvc/
 
+Mail:
+
+mail.dpworks.org
+
+postmaster@dpworks.org
+
+https://m07.internetmailserver.net/Default.aspx
+
 
 
 

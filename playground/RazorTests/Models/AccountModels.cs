@@ -72,13 +72,7 @@ namespace RazorTests.Models
 		public int Id { get; set; }
 
 		[Required]
-		public int UserId { get; set; }					// FK to UserProfile.UserId
-
-		[Required]
 		public int SiteId { get; set; }					// FK to SiteId
-
-		[ForeignKey("UserId")]
-		public UserProfile UserProfile { get; set; }
 
 		[ForeignKey("SiteId")]
 		public SiteProfile SiteProfile { get; set; }
@@ -92,29 +86,35 @@ namespace RazorTests.Models
 		[Required]
 		public string Email { get; set; }
 
-		[Required]
+		[Required(AllowEmptyStrings=true)]
 		public string RegistrationToken { get; set; }
 
 		[Required]
 		public bool Activated { get; set; }
 	}
 
-	public class LocalPasswordModel
+	/// <summary>
+	/// Used by the user management UI.
+	/// </summary>
+	public class UserItem
 	{
-		[Required]
-		[DataType(DataType.Password)]
-		[Display(Name = "Current password")]
-		public string OldPassword { get; set; }
+		public int Id { get; set; }
+		public string FirstName { get; set; }
+		public string LastName { get; set; }
+		public string Email { get; set; }
+	}
 
+	public class PasswordModel
+	{
 		[Required]
 		[StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
 		[DataType(DataType.Password)]
-		[Display(Name = "New password")]
-		public string NewPassword { get; set; }
+		[Display(Name = "Password:")]
+		public string Password { get; set; }
 
 		[DataType(DataType.Password)]
-		[Display(Name = "Confirm new password")]
-		[Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+		[Display(Name = "Confirm new password:")]
+		[Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
 		public string ConfirmPassword { get; set; }
 	}
 
@@ -133,6 +133,9 @@ namespace RazorTests.Models
 		public bool RememberMe { get; set; }
 	}
 
+	/// <summary>
+	/// !!! USED TO SEED THE DATABASE ON INITIAL LOAD !!!
+	/// </summary>
 	public class RegisterModel
 	{
 		[Required]
@@ -149,28 +152,5 @@ namespace RazorTests.Models
 		[Display(Name = "Confirm password:")]
 		[Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
 		public string ConfirmPassword { get; set; }
-	}
-
-	/// <summary>
-	/// Used by admins to register new users into the system.
-	/// Once registered, a user will receive an email instructing them to go to a specific link to create their password.
-	/// </summary>
-	public class RegisterNewUserModel
-	{
-		[Required]
-		[Display(Name = "Username:")]
-		public string UserName { get; set; }
-
-		[Required]
-		[Display(Name = "First Name:")]
-		public string FirstName { get; set; }
-
-		[Required]
-		[Display(Name = "Last Name:")]
-		public string LastName { get; set; }
-
-		[Required]
-		[Display(Name = "Email:")]
-		public string Email { get; set; }
 	}
 }

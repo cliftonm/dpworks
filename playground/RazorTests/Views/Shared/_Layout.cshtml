@@ -16,11 +16,22 @@
   <body>
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
         <a class="navbar-brand" href="#">DPW Works!</a>
+
+        <!-- The site name is overridden when the site-wide admin is using the system and has selected a site. -->
+        <!-- Otherwise, the site name is determined from the site associated with the logged in user -->
+        <!-- TODO: Test: site-wide admin logs in, selects a site, logs out, user logs in -- is the ViewBag div restored? -->
+        <div class="navbar-brand" id="siteName">@Session["SiteName"]</div>
+
         <div class="btn-group navbar-right">
             <div class="padding-top8 padding-right20">
                <button type="button" class="btn btn-default btn-topbar" onclick="location.href='@Url.Action("Index", "Home")'">Home</button>
                <button type="button" class="btn btn-default btn-topbar" onclick="location.href='@Url.Action("About", "Home")'">About</button>
                <button type="button" class="btn btn-default btn-topbar" onclick="location.href='@Url.Action("Contact", "Home")'">Contact</button>
+
+                @if (WebSecurity.IsAuthenticated)
+                {
+                   <button type="button" class="btn btn-default btn-topbar" onclick="location.href='@Url.Action("Logout", "Home")'">Logout</button>
+                }
              </div>
         </div>
     </nav>
@@ -30,28 +41,37 @@
         <div class="col-sm-3 col-md-2 sidebar">
 
           <!-- site-wide admin page stuff -->
-          <ul class="nav nav-sidebar">
-            <li><a href="/Admin/SiteManagement">Sites</a></li>
-            <li><a href="#">Users</a></li>
-            <li><a href="#">Roles</a></li>
-          </ul>
+            @if (WebSecurity.IsAuthenticated)
+            {
+              <ul class="nav nav-sidebar">
+                  @if (User.IsInRole("Site-Wide Administrator"))
+                  {
+                    <li><a href="/Admin/SiteManagement">Sites</a></li>
+                    <li><a href="/Admin/RoleManagement">Roles</a></li>
+                  }
+                  @if ( (User.IsInRole("Site-Wide Administrator") || User.IsInRole("Administrator")) && (Session["SiteId"] != null) )
+                  {
+                    <li><a href="/Admin/UserManagement">Users</a></li>
+                  }
+              </ul>
 
-          <!-- admin stuff : when the user is a site admin, we show this
-          <ul class="nav nav-sidebar">
-            <li><a href="#">Users</a></li>
-            <li><a href="#">Roles</a></li>
-          </ul>
-            -->
+              <!-- admin stuff : when the user is a site admin, we show this
+              <ul class="nav nav-sidebar">
+                <li><a href="#">Users</a></li>
+                <li><a href="#">Roles</a></li>
+              </ul>
+                -->
 
-          <!-- user stuff -->
-            <!-- we see this only when we have a site selected. -->
-          <ul class="nav nav-sidebar">
-            <li><a href="">Create Estimate</a></li>
-            <li><a href="">View Estimates</a></li>
-            <li><a href="">Reports</a></li>
-            <li><a href="">Preferences</a></li>
-            <li><a href="">Account Settings</a></li>
-          </ul>
+              <!-- user stuff -->
+                <!-- we see this only when we have a site selected. -->
+              <ul class="nav nav-sidebar">
+                <li><a href="">Create Estimate</a></li>
+                <li><a href="">View Estimates</a></li>
+                <li><a href="">Reports</a></li>
+                <li><a href="">Preferences</a></li>
+                <li><a href="">Account Settings</a></li>
+              </ul>
+            }
 
           <!-- unregistered and registered users -->
           <ul class="nav nav-sidebar">

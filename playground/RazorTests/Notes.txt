@@ -33,3 +33,51 @@ and in the cshtml:
 Now, how does the blimey model work???
 
 		
+Session timeout:
+
+The default session timeout does not seem to be 20 minutes as previously documented on the web.  It seems very short indeed.  To change this:
+
+<sessionState mode="InProc" customProvider="DefaultSessionProvider" timeout="10">
+
+where timeout is in minutes.  Still, that doesn't seem to work quite right, possibly a development issue when running the site from VS?
+
+How to capture when the session times out?
+See action filters: http://www.asp.net/mvc/overview/older-versions-1/controllers-and-routing/understanding-action-filters-cs
+
+Also, the above is a good example of logging.
+
+Migrations:
+
+In the Package Manager Console:
+
+enable-migrations
+add-migration InitialCreate
+update-database
+
+RazorEngine:
+
+If you install RazorEngine, it f***s up your app.
+https://razorengine.codeplex.com/workitem/1110
+You have to remove the reference to the "System.web.Razor" under the assembly bindings in your web.config 
+
+Email using a view:
+
+http://stackoverflow.com/questions/4368815/razor-views-as-email-templates
+Might consider MvcMailer as well.
+
+-------------- ARGH! ------------------
+
+E:\dpworks\playground\packages\Microsoft.AspNet.Razor.3.0.0\lib\net45\System.Web.Razor.dll
+
+E:\dpworks\playground\packages\Microsoft.AspNet.Mvc.4.0.40804.0\lib\net40\System.Web.Mvc.dll
+
+http://stackoverflow.com/questions/5628689/download-old-version-of-package-with-nuget
+
+uninstall-package razorengine
+
+
+http://stackoverflow.com/questions/25514718/found-conflicts-between-versions-of-the-same-dependent-assembly
+http://stackoverflow.com/questions/14864670/mvc4-azure-publishing-error-could-not-load-file-or-assembly-system-web-razor
+http://docs.nuget.org/docs/start-here/using-the-package-manager-console
+http://anthonyfassett.blogspot.com/2013/11/updating-razor-20-to-30-with-aspnet-mvc.html
+

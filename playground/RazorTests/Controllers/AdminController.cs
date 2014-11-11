@@ -6,9 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Web;
 using System.Web.Helpers;
+using System.Web.Hosting;			// need for VirtualPathProvider.
 using System.Web.Mvc;
 using System.Web.Mvc.Html;			// needed for HtmlHelper class extensions.
 using WebMatrix.Data;
+using WebMatrix.WebData;
+
+using RazorEngine;					// used for razor engine to generate html from cshtml templates.
 
 using RazorTests.Models;
 
@@ -16,11 +20,15 @@ namespace RazorTests.Controllers
 {
     public class AdminController : Controller
     {
-        public ActionResult RoleManagement()
+		[Authorize]
+		public ActionResult RoleManagement()
         {
             return View();
         }
 
+		// ========= SITE MANAGEMENT ==============
+
+		[Authorize]
 		public ActionResult SiteManagement()
 		{
 			// var db = Database.Open("DefaultConnection");
@@ -60,6 +68,7 @@ namespace RazorTests.Controllers
 		}
 
 		[HttpPost]
+		[Authorize]
 		public ActionResult DeleteSite()
 		{
 			var id = Request["ItemId"];
@@ -68,6 +77,7 @@ namespace RazorTests.Controllers
 		}
 
 		[HttpPost]
+		[Authorize]
 		public ActionResult SaveSite()
 		{
 			var id = Request["ItemId"];
@@ -105,6 +115,135 @@ namespace RazorTests.Controllers
 			}
 
 			return Json(new { ItemId = id });
+		}
+
+		// ========= USER MANAGEMENT ==============
+
+		[Authorize]
+		public ActionResult UserManagement()
+		{
+			var context = new UsersContext();
+			var userInfo = context.UserInfo;
+			List<UserItem> users = new List<UserItem>();
+
+			foreach (UserInfo ui in userInfo)
+			{
+				users.Add(new UserItem() { Id = ui.Id, FirstName = ui.FirstName, LastName = ui.LastName, Email = ui.Email });
+			}
+
+			HtmlHelper helper = this.GetHtmlHelper();
+
+			// Initialize grid metadata
+			GridMetadata gridMetadata = new GridMetadata();
+			gridMetadata.AddColumn("col2", "firstname", ColumnMetadata.Control.TextBox, "FirstName", "First Name", "20");
+			gridMetadata.AddColumn("col3", "lastname", ColumnMetadata.Control.TextBox, "LastName", "Last Name", "20");
+			gridMetadata.AddColumn("col4", "email", ColumnMetadata.Control.TextBox, "Email", "Email", "20");
+
+			// Initialize grid
+			WebGrid grid = new WebGrid(users, ajaxUpdateContainerId: "grid", ajaxUpdateCallback: "setArrows");
+
+			List<WebGridColumn> columnSet = gridMetadata.GetColumnSet(helper, grid);
+
+			// Look at EngineContext.Current.Resolve<GenericController>() to be able to call the controller methods directly.
+			// See http://stackoverflow.com/questions/5960664/calling-a-method-in-the-controller
+
+			ViewBag.Grid = grid;
+			ViewBag.ColumnSet = columnSet;
+			ViewBag.InlineNewRow = gridMetadata.GetInlineNewRow();
+			ViewBag.EditGetters = gridMetadata.EditGetters();
+			ViewBag.DisplaySetters = gridMetadata.DisplaySetters();
+			ViewBag.PostPath = "/Admin/SaveUser";
+			ViewBag.DeletePath = "/Admin/DeleteUser";
+			ViewBag.PostbackParams = gridMetadata.PostbackParams();
+			ViewBag.PopulateDropDownLists = gridMetadata.PopulateDropDownLists();
+
+			return View();
+		}
+
+		[HttpPost]
+		[Authorize]
+		public ActionResult DeleteUser()
+		{
+			int id = Convert.ToInt32(Request["ItemId"]);
+			var context = new UsersContext();
+			UserProfile up = context.UserProfiles.Find(id);
+
+			// Delete the user info record if it exists.
+			UserInfo ui = context.UserInfo.SingleOrDefault(u => u.Email == up.UserName);
+
+			if (ui != null)
+			{
+				context.UserInfo.Remove(ui);
+			}
+
+			context.UserProfiles.Remove(up);
+			context.SaveChanges();
+
+			return new EmptyResult();
+		}
+
+		[HttpPost]
+		[Authorize]
+		public ActionResult SaveUser()
+		{
+			var id = Request["ItemId"];
+			var firstName = Request["FirstName"];
+			var lastName = Request["LastName"];
+			var email = Request["Email"];
+
+			if (id == "-1")
+			{
+				// Insert
+				var context = new UsersContext();
+
+				// Save the user info.  We must have a selected site!
+				string token = Guid.NewGuid().ToString();
+				UserInfo sp = new UserInfo() { FirstName=firstName, LastName=lastName, Email=email, RegistrationToken=token, Activated=false, SiteId = Convert.ToInt32(Session["SiteId"]) };
+				context.UserInfo.Add(sp);
+				context.SaveChanges();
+
+				// Lastly, email the user a registration link.
+				EmailRegistrationLink(email, firstName, token);
+
+				id = sp.Id.ToString();
+			}
+			else
+			{
+				// Update
+				// Read on options for updating here: http://stackoverflow.com/questions/15336248/entity-framework-5-updating-a-record
+				var context = new UsersContext();
+				int iid = Convert.ToInt32(id);
+				UserInfo ui = context.UserInfo.Find(iid);
+				ui.FirstName = firstName;
+				ui.LastName = lastName;
+				ui.Email = email;
+				context.SaveChanges();
+			}
+
+			return Json(new { ItemId = id });
+		}
+
+		protected void EmailRegistrationLink(string email, string firstName, string token)
+		{
+			WebMail.SmtpServer = System.Configuration.ConfigurationManager.AppSettings["SmtpServer"];
+			WebMail.UserName = System.Configuration.ConfigurationManager.AppSettings["Username"];
+			WebMail.Password = System.Configuration.ConfigurationManager.AppSettings["Password"];
+			WebMail.From = System.Configuration.ConfigurationManager.AppSettings["Username"];
+			WebMail.SmtpPort = 587;
+			WebMail.EnableSsl = false;
+
+			// http://stackoverflow.com/questions/4368815/razor-views-as-email-templates
+
+			VirtualPathProvider vpp = HostingEnvironment.VirtualPathProvider;
+			Stream s = vpp.GetFile("~/Templates/NewUserRegistrationEmail.cshtml").Open();
+			StreamReader sr = new StreamReader(s);
+			string template = sr.ReadToEnd();
+			sr.Close();
+			s.Close();
+
+			string html = Razor.Parse(template, new { FirstName = firstName, Token = token });
+
+			WebMail.Send(to: email, subject: "Welcome to DPWorks", body: html);
 		}
     }
 }
