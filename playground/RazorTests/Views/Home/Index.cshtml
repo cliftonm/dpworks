@@ -3,11 +3,13 @@
 }
 
 <link rel="stylesheet" href="~/Styles/Login.css" type="text/css" />
+<link rel="stylesheet" href="~/Styles/StyleSheet.css" type="text/css" />
 
 <script>
     $(function () {
         $('#RememberMe').hide();
         $('#selectSite').on('click', function () { selectSite(); });
+        initializeSpinny();
     });
 
     function rememberMe() {
@@ -27,6 +29,17 @@
             });
     }
 
+    function initializeSpinny() {
+        var loading = $('#loadingDiv');
+        loading.hide();
+        $(document)
+          .ajaxStart(function () {
+              loading.show();
+          })
+          .ajaxStop(function () {
+              loading.hide();
+          });
+    }
 </script>
 
 @if (!WebSecurity.IsAuthenticated)
@@ -47,4 +60,7 @@ else
     }
     
     <p>TODO: If user is admin or other, show site name.</p>
+    
+    <div id='loadingDiv'><img src="~/Images/spinner.gif"/></div> 
+
 }

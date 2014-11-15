@@ -1,4 +1,8 @@
-﻿My generic grid URL: ViewBook\GenericGrid
+﻿FTP: dpworkso@ftp.w18.wh-2.com
+
+
+
+My generic grid URL: ViewBook\GenericGrid
 
 
 An example form post button:
@@ -86,3 +90,40 @@ Web mail on the host requires:
 <configuration>
   <system.web>
     <trust level="Full" originUrl=""/>
+
+
+Lessons:
+
+Don't use install-package
+Make sure all your references are "Copy Local -> true"
+Don't use the deployer
+Don't use migrations on the server -- use migrations locally and then hand pick what SQL to execute on the server
+Configure the trust level, otherwise email doesn't work.
+
+-------------------------------------------
+Razor Generator:
+
+http://razorgenerator.codeplex.com/
+http://stackoverflow.com/questions/10608948/visual-studio-cannot-find-custom-tool-razorgenerator
+
+install-package RazorGenerator.MVC
+
+you will also need to install the Visual Studio Extension called RazorGenerator
+
+    Go to Tools, then Extension Manager
+    Search for Razor Generator
+    Click the Download button.
+    Once the install has completed, restart Visual Studio.
+
+After restart, in the PM console:
+
+Enable-RazorGenerator
+
+For new views: Go to an MVC Razor view's property and set the Custom tool to RazorGenerator 
+
+To generate the actual cs files: in the PM - Redo-RazorGenerator
+
+Alternatively, right-click on the .cshtml view and select "Run Custom Tool"
+
+Note that a couple views needed manual fixups -- missing "using" -- so we don't want to globally change this everywhere.
+-------------------------------------------

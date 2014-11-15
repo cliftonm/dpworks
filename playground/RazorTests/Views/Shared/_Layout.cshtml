@@ -55,12 +55,16 @@
                   }
               </ul>
 
-              <!-- admin stuff : when the user is a site admin, we show this
-              <ul class="nav nav-sidebar">
-                <li><a href="#">Users</a></li>
-                <li><a href="#">Roles</a></li>
-              </ul>
-                -->
+                <!-- separate these admin functions -->                
+                if ( (User.IsInRole("Site-Wide Administrator") || User.IsInRole("Administrator")) && (Session["SiteId"] != null) )
+                {
+                <ul class="nav nav-sidebar">
+                    <li><a href="/Admin/UnitManagement">Units</a></li>
+                    <li><a href="/Admin/LaborRateManagement">Labor Rates</a></li>
+                    <li><a href="/Admin/EquipmentManagement">Equipment</a></li>
+                    <li><a href="/Admin/MaterialManagement">Material</a></li>
+                </ul>
+                }
 
               <!-- user stuff -->
                 <!-- we see this only when we have a site selected. -->

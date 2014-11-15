@@ -10,6 +10,7 @@
                 $('.edit-mode').hide();
                 initializeFormEvents();
                 initializeGridItemEvents();
+                initializeSpinny();
             });
 
             function initializeFormEvents() {
@@ -25,7 +26,20 @@
                     $('.save-new-item').removeClass("save-new-item").addClass("save-item");
                     saveBook($(this));
                 });
-            };
+            }
+
+            // http://stackoverflow.com/questions/68485/how-to-show-loading-spinner-in-jquery
+            function initializeSpinny() {
+                var loading = $('#loadingDiv');
+                loading.hide();
+                $(document)
+                  .ajaxStart(function () {
+                      loading.show();
+                  })
+                  .ajaxStop(function () {
+                      loading.hide();
+                  });
+            }
 
             function setArrows() {
                 var dir = $('#dir').val();
@@ -102,6 +116,7 @@
                 }
             };
         </script>
+        <div id='loadingDiv'><img src="~/Images/spinner.gif"/></div> 
         <div id="grid">
             @grid.GetHtml(
                 tableStyle : "table",

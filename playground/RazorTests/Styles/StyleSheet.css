@@ -64,3 +64,16 @@ span{
 .disabled {
 	opacity:.2;
 }
+
+#loadingDiv {
+    display: none;
+    position:fixed;
+    left:50%;
+    top:50%;
+    width:48px;
+    height:48px;
+    margin-top: -24px;
+    margin-left: -24px;
+    _position: absolute;
+    z-index: 1001;
+}

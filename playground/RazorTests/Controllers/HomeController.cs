@@ -126,7 +126,8 @@ namespace RazorTests.Controllers
 			return Json(new { Name = site.Name });
 		}
 
-		[AllowAnonymous]
+		// Change to [AllowAnonymous] for testing email.
+		[Authorize]
 		public ActionResult EmailTest()
 		{
 			WebMail.SmtpServer = System.Configuration.ConfigurationManager.AppSettings["SmtpServer"];

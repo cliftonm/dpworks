@@ -20,6 +20,10 @@ namespace RazorTests.Models
 		public DbSet<Role> Roles { get; set; }
 		public DbSet<UserRole> UserRoles { get; set; }
 		public DbSet<UserInfo> UserInfo { get; set; }
+		public DbSet<Unit> Units { get; set; }
+		public DbSet<LaborRate> LaborRates { get; set; }
+		public DbSet<Equipment> Equipment { get; set; }
+		public DbSet<Material> Materials { get; set; }
 	}
 
 	/// <summary>

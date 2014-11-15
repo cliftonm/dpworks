@@ -16,7 +16,9 @@ namespace RazorTests.Controllers
 	[InitializeSimpleMembership]
 	public class AccountController : Controller
 	{
-		[AllowAnonymous]
+		// Change this to Authorize for the production version.
+		// [AllowAnonymous]
+		[Authorize]
 		public ActionResult Register()
 		{
 			return View();
