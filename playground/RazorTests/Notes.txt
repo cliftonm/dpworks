@@ -127,3 +127,6 @@ Alternatively, right-click on the .cshtml view and select "Run Custom Tool"
 
 Note that a couple views needed manual fixups -- missing "using" -- so we don't want to globally change this everywhere.
 -------------------------------------------
+
+
+fieldNamePrefix

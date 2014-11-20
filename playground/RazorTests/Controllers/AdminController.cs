@@ -345,7 +345,8 @@ namespace RazorTests.Controllers
 		public ActionResult GetUnits()
 		{
 			var context = new UsersContext();
-			var units = context.Units.OrderBy(u => u.Name).Select(u => new { UnitId = u.Id, UnitName = u.Name });		// We need more explicit names so "Id" and "Name" doesn't interfere with other fields with id's if "id" and "name"
+			// We need more explicit names so "Id" and "Name" doesn't interfere with other fields with id's if "id" and "name"
+			var units = context.Units.OrderBy(u => u.Name).Select(u => new { UnitId = u.Id, UnitName = u.Name });		
 			var jsonResult = System.Web.Helpers.Json.Encode(units);
 			return Json(jsonResult, JsonRequestBehavior.AllowGet);
 		}

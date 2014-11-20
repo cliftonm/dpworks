@@ -37,6 +37,12 @@ namespace RazorTests
 				defaults: new { controller = "Admin", action = "RoleManagement", id = UrlParameter.Optional }
 			);
 
+			routes.MapRoute(
+				name: "Estimates",
+				url: "{controller}/{action}/{id}",
+				defaults: new { controller = "Estimates", action = "Index", id = UrlParameter.Optional }
+			);
+
 			//routes.MapRoute(
 			//	name: "SaveBook",
 			//	url: "{controller}/{action}/{id}",

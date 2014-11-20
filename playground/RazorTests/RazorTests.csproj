@@ -194,6 +194,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\EstimatesController.cs" />
     <Compile Include="Controllers\GridMetadata.cs" />
     <Compile Include="Controllers\ViewBookController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -249,6 +250,10 @@
     <Compile Include="Migrations\201411152023439_EquipmentAndMaterialTables.Designer.cs">
       <DependentUpon>201411152023439_EquipmentAndMaterialTables.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201411161505198_AliasedUnitTest.cs" />
+    <Compile Include="Migrations\201411161505198_AliasedUnitTest.Designer.cs">
+      <DependentUpon>201411161505198_AliasedUnitTest.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Equipment.cs" />
@@ -297,6 +302,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>UserManagement.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Estimates\NewEstimate.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>NewEstimate.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Estimates\ViewEstimates.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ViewEstimates.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Home\About.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -316,6 +331,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>RegisterNewUser.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Home\_BootstrapLogin.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>_BootstrapLogin.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Shared\Error.generated.cs">
       <AutoGen>True</AutoGen>
@@ -523,6 +543,7 @@
     </Content>
     <Content Include="Views\Home\_BootstrapLogin.cshtml">
       <Generator>RazorGenerator</Generator>
+      <LastGenOutput>_BootstrapLogin.generated.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Home\_ForgotPasswordFlyout.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -570,6 +591,14 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>MaterialManagement.generated.cs</LastGenOutput>
     </Content>
+    <Content Include="Views\Estimates\NewEstimate.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>NewEstimate.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Estimates\ViewEstimates.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ViewEstimates.generated.cs</LastGenOutput>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -615,6 +644,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201411152023439_EquipmentAndMaterialTables.resx">
       <DependentUpon>201411152023439_EquipmentAndMaterialTables.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201411161505198_AliasedUnitTest.resx">
+      <DependentUpon>201411161505198_AliasedUnitTest.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

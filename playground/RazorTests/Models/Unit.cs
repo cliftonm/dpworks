@@ -29,4 +29,26 @@ namespace RazorTests.Models
 
 		public string Description { get; set; }
 	}
+
+	[Table("Unit")]
+	public class AliasedUnit
+	{
+		[Key]
+		[Column("Id")]
+		[DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
+		public int UnitId { get; set; }
+
+		[Required]
+		public int SiteId { get; set; }					// FK to SiteId
+
+		[ForeignKey("SiteId")]
+		public SiteProfile SiteProfile { get; set; }
+
+		[Required]
+		[Display(Name = "Abbr.")]
+		public string Abbr { get; set; }
+
+		[Column("Name")]
+		public string UnitName { get; set; }
+	}
 }
