@@ -28,7 +28,7 @@ namespace RazorTests.Views.Shared
     using System.Web.UI;
     using System.Web.WebPages;
 	using WebMatrix.WebData;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/_Layout.cshtml")]
     public partial class Layout : System.Web.Mvc.WebViewPage<dynamic>
@@ -407,11 +407,11 @@ WriteLiteral(" class=\"nav nav-sidebar\"");
 
 WriteLiteral(">\r\n                <li><a");
 
-WriteLiteral(" href=\"\"");
+WriteLiteral(" href=\"/Estimates/NewEstimate\"");
 
 WriteLiteral(">Create Estimate</a></li>\r\n                <li><a");
 
-WriteLiteral(" href=\"\"");
+WriteLiteral(" href=\"/Estimates/ViewEstimates\"");
 
 WriteLiteral(">View Estimates</a></li>\r\n                <li><a");
 
