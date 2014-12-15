@@ -54,7 +54,7 @@
       <HintPath>..\..\assemblies\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="RazorEngine">
-      <HintPath>..\..\..\RazorEngine\src\Core\RazorEngine.Core\bin\Debug\RazorEngine.dll</HintPath>
+      <HintPath>..\..\assemblies\RazorEngine.dll</HintPath>
     </Reference>
     <Reference Include="RazorGenerator.Mvc">
       <HintPath>..\packages\RazorGenerator.Mvc.2.2.3\lib\net40\RazorGenerator.Mvc.dll</HintPath>
@@ -656,7 +656,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
+          <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>52853</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
