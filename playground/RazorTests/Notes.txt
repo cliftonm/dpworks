@@ -130,3 +130,17 @@ Note that a couple views needed manual fixups -- missing "using" -- so we don't 
 
 
 fieldNamePrefix
+
+
+-------------------------------------------
+
+INSTALLING ON ANOTHER SYSTEM
+
+git clone ...
+
+download nuget.exe if you don't have it already: http://nuget.codeplex.com/releases/view/133091
+
+nuget install packages.config
+ - or -
+nuget restore YourSolution.sln
+
