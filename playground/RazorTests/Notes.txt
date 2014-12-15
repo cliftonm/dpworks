@@ -136,11 +136,180 @@ fieldNamePrefix
 
 INSTALLING ON ANOTHER SYSTEM
 
+***** STEP 1 *****
+
 git clone ...
+
+Install nuget 2.7 if not already installed, so that auto-download of missing packages will happen: http://nuget.codeplex.com/releases/view/133091
+(Make sure that under tools -> Package Manager -> Package Manager Settings, "Allow Nuget to download missing packages" and "Automatically check for..." are checked.
+Reload the solution and build it to download the missing packages.
+
+ALSO:
 
 download nuget.exe if you don't have it already: http://nuget.codeplex.com/releases/view/133091
 
 nuget install packages.config
  - or -
 nuget restore YourSolution.sln
+
+***** STEP 2 *****
+
+Create the following tables in the dbworks DB on the new system:
+
+UserProfile
+webpags_Membership
+webpages_OAuthMembership
+webpages_Roles
+webpages_UsersInRoles
+
+CREATE TABLE [dbo].[UserProfile](
+	[UserId] [int] IDENTITY(1,1) NOT NULL,
+	[UserName] [nvarchar](56) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[UserId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY],
+UNIQUE NONCLUSTERED 
+(
+	[UserName] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+CREATE TABLE [dbo].[webpages_Roles](
+	[RoleId] [int] IDENTITY(1,1) NOT NULL,
+	[RoleName] [nvarchar](256) NULL,
+ CONSTRAINT [PK_dbo.webpages_Roles] PRIMARY KEY CLUSTERED 
+(
+	[RoleId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+CREATE TABLE [dbo].[webpages_UsersInRoles](
+	[UserId] [int] NOT NULL,
+	[RoleId] [int] NOT NULL,
+ CONSTRAINT [PK_dbo.webpages_UsersInRoles] PRIMARY KEY CLUSTERED 
+(
+	[UserId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[webpages_UsersInRoles]  WITH CHECK ADD  CONSTRAINT [FK_dbo.webpages_UsersInRoles_dbo.UserProfile_UserId] FOREIGN KEY([UserId])
+REFERENCES [dbo].[UserProfile] ([UserId])
+GO
+
+ALTER TABLE [dbo].[webpages_UsersInRoles] CHECK CONSTRAINT [FK_dbo.webpages_UsersInRoles_dbo.UserProfile_UserId]
+GO
+
+ALTER TABLE [dbo].[webpages_UsersInRoles]  WITH CHECK ADD  CONSTRAINT [FK_dbo.webpages_UsersInRoles_dbo.webpages_Roles_RoleId] FOREIGN KEY([RoleId])
+REFERENCES [dbo].[webpages_Roles] ([RoleId])
+ON DELETE CASCADE
+GO
+
+ALTER TABLE [dbo].[webpages_UsersInRoles] CHECK CONSTRAINT [FK_dbo.webpages_UsersInRoles_dbo.webpages_Roles_RoleId]
+GO
+
+CREATE TABLE [dbo].[webpages_Membership](
+	[UserId] [int] NOT NULL,
+	[CreateDate] [datetime] NULL,
+	[ConfirmationToken] [nvarchar](128) NULL,
+	[IsConfirmed] [bit] NULL,
+	[LastPasswordFailureDate] [datetime] NULL,
+	[PasswordFailuresSinceLastSuccess] [int] NOT NULL,
+	[Password] [nvarchar](128) NOT NULL,
+	[PasswordChangedDate] [datetime] NULL,
+	[PasswordSalt] [nvarchar](128) NOT NULL,
+	[PasswordVerificationToken] [nvarchar](128) NULL,
+	[PasswordVerificationTokenExpirationDate] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[UserId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+ALTER TABLE [dbo].[webpages_Membership] ADD  DEFAULT ((0)) FOR [IsConfirmed]
+GO
+
+ALTER TABLE [dbo].[webpages_Membership] ADD  DEFAULT ((0)) FOR [PasswordFailuresSinceLastSuccess]
+GO
+
+CREATE TABLE [dbo].[webpages_OAuthMembership](
+	[Provider] [nvarchar](30) NOT NULL,
+	[ProviderUserId] [nvarchar](100) NOT NULL,
+	[UserId] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Provider] ASC,
+	[ProviderUserId] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+***** STEP 3 *****
+
+Update the web.config to connect to your database
+
+***** STEP 4 *****
+
+In the package manager console:
+update-database
+
+***** STEP 5 *****
+
+In the solution properties page, Web, change "Servers" to "Use Visual Studio Development Server" as I've encountered problems with "Use Local IIS Web server" working after rebuilds.
+
+***** STEP 6 *****
+
+In the AccountController.cs, change the settings so that registration allows anonymous:
+
+// [AllowAnonymous]
+		[Authorize]
+		public ActionResult Register()
+		{
+			return View();
+		}
+
+Go to the "hidden" page /Account/Register
+
+Register yourself as a user to seed to DB with an initial user:
+enter an email address for "username"
+
+***** STEP 7 *****
+
+In AdminController.cs, allow anonymous for changing roles, as we need to get you set up as a site-wide admin
+
+		[AllowAnonymous]
+		// [Authorize]
+		public ActionResult RoleManagement()
+
+***** STEP 7 *****
+
+Go to: /Admin/RoleManagement
+
+Create the role "Site-Wide Administrator"  (must match exactly [I think!])
+
+Add yourself to the role.
+
+You can now add sites and additional roles.
+
+***** STEP 8 *****
+
+Change the functions above back to "Authorize"
+
+
+																
+
+
+
+
+
+
 
