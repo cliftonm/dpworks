@@ -250,10 +250,6 @@
     <Compile Include="Migrations\201411152023439_EquipmentAndMaterialTables.Designer.cs">
       <DependentUpon>201411152023439_EquipmentAndMaterialTables.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201411161505198_AliasedUnitTest.cs" />
-    <Compile Include="Migrations\201411161505198_AliasedUnitTest.Designer.cs">
-      <DependentUpon>201411161505198_AliasedUnitTest.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Equipment.cs" />
@@ -644,9 +640,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201411152023439_EquipmentAndMaterialTables.resx">
       <DependentUpon>201411152023439_EquipmentAndMaterialTables.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201411161505198_AliasedUnitTest.resx">
-      <DependentUpon>201411161505198_AliasedUnitTest.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
