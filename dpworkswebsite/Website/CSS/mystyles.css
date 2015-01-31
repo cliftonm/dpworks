@@ -1,0 +1,244 @@
+body, input, textarea, select {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+    color: #669;
+    line-height: 1.6em;
+}
+
+body 
+{ 
+	margin-left:0; 
+	margin-right:0;
+	margin-bottom: 60px;
+	padding:0; 
+
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Sticky header/footer is from: https://www.virendrachandak.com/techtalk/sticky-header-and-footer-using-css/ */
+
+footer {
+	padding-top:8px;
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	/* Set the fixed height of the footer here */
+	height: 60px;
+	background-color: #C0C0C0;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+    color: #669;
+    line-height: 1.6em;
+}
+
+.padding-top8 {
+	padding-top: 8px;
+}
+
+/* Make Header Sticky */
+#header_container 
+{ 
+	background:#eee; 
+	border:1px solid #666; 
+	height:60px; left:0; 
+	position:fixed; 
+	width:100%; 
+	top:0;
+}
+
+#header
+{ 
+	line-height:60px; 
+	margin:0 auto; 
+	width:100%; 
+	text-align:center; 
+}
+ 
+/* CSS for the content of page. I am giving top and bottom padding of 80px to make sure the header and footer do not overlap the content.*/
+#container 
+{ 
+	margin:0 auto; 
+	overflow: auto;
+	padding:80px 0; 
+	width:100%; 
+}
+
+#content
+{
+	margin-left:20px;
+	margin-right:20px;
+	overflow: auto;
+}
+ 
+/* Make Footer Sticky */
+#footer_container 
+{ 
+	background:#eee; 
+	border:1px solid #666; 
+	bottom:0; 
+	height:60px; 
+	left:0; 
+	position:fixed; 
+	width:100%; 
+}
+#footer 
+{ 
+	line-height:60px; 
+	margin:0 auto; 
+	width:100%; 
+	text-align:center; 
+}
+
+.center
+{
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.center-text
+{
+	text-align: center;
+}
+
+.center-img
+{
+	margin: auto;
+}
+
+div.center-col
+{
+	float: none; 
+	margin: 0 auto;
+}
+
+.top-margin-25
+{
+	padding-top: 25px;
+}
+
+.top-margin-50
+{
+	padding-top: 50px;
+}
+
+.top-margin-150
+{
+	padding-top: 150px;
+}
+
+.top-margin-250
+{
+	padding-top: 250px;
+}
+
+.top-margin-10
+{
+	padding-top: 10px;
+}
+
+div.float-left
+{
+	float:left;
+}
+
+div.float-right
+{
+	float:right;
+}
+
+div.menu-button
+{
+	padding-left: 50px;
+	padding-right: 50px;
+}
+
+div.font-large
+{
+	font-size: large;
+}
+
+div.font-xlarge
+{
+	font-size: x-large;
+}
+
+div.font-xxlarge
+{
+	font-size: xx-large;
+}
+
+/* center the inner div */
+div.center-inner
+{
+	display: table;
+    margin: 0 auto;
+}
+
+input#chargeUp
+{
+	font-size: large;
+}
+
+input#recordDance
+{
+	font-size: large;
+}
+
+input#checkOut
+{
+	font-size: large;
+}
+
+input#checkIn
+{
+	font-size: large;
+}
+
+input#logDance
+{
+	font-size: large;
+}
+
+input#danceStatus
+{
+	font-size: large;
+}
+
+input.presetAmount
+{
+	font-size: large;
+}
+
+input.otherAmount
+{
+	font-size: large;
+}
+
+div.instructions 
+{
+	color: blue;	
+	font-size: x-large;
+}
+
+input[type="submit"]:disabled 
+{
+    background: #dddddd;
+} 
+
+iframe[seamless] {
+    border: none;
+}
+
+.theader {
+	padding-left:10px;
+	padding-right:10px;
+}
+
+.tcolumn {
+	padding-left:10px;
+	padding-right:10px;
+}

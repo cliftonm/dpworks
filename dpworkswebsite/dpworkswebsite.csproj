@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9FBE9E75-4504-459B-A669-184B156AA48C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>dpworkswebsite</RootNamespace>
+    <AssemblyName>dpworkswebsite</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controllers\LoginController.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="Website\Fonts\glyphicons-halflings-regular.eot" />
+    <None Include="Website\Fonts\glyphicons-halflings-regular.ttf" />
+    <None Include="Website\Fonts\glyphicons-halflings-regular.woff" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Website\Images\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Website\CSS\bootstrap-theme.css" />
+    <Content Include="Website\CSS\bootstrap-theme.min.css" />
+    <Content Include="Website\CSS\bootstrap.css" />
+    <Content Include="Website\CSS\bootstrap.min.css" />
+    <Content Include="Website\CSS\login.css" />
+    <Content Include="Website\CSS\mystyles.css" />
+    <Content Include="Website\Fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="Website\Pages\about.html" />
+    <Content Include="Website\Pages\contact.html" />
+    <Content Include="Website\Pages\ErrorPages\expiredSession.html" />
+    <Content Include="Website\Pages\ErrorPages\fileNotFound.html" />
+    <Content Include="Website\Pages\ErrorPages\notAuthorized.html" />
+    <Content Include="Website\Pages\ErrorPages\pageNotFound.html" />
+    <Content Include="Website\Pages\ErrorPages\serverError.html" />
+    <Content Include="Website\Pages\ErrorPages\unknownType.html" />
+    <Content Include="Website\Pages\ErrorPages\validationError.html" />
+    <Content Include="Website\Pages\footer.html" />
+    <Content Include="Website\Pages\index.html" />
+    <Content Include="Website\Pages\login.html" />
+    <Content Include="Website\Pages\menubar.html" />
+    <Content Include="Website\Scripts\bootstrap.js" />
+    <Content Include="Website\Scripts\bootstrap.min.js" />
+    <Content Include="Website\Scripts\csi.js" />
+    <Content Include="Website\Scripts\jquery-1.11.2.min.js" />
+    <Content Include="Website\Scripts\jquery.signalR-2.2.0.min.js" />
+    <Content Include="Website\Scripts\knockout-3.2.0.js" />
+    <Content Include="Website\Scripts\myscripts.js" />
+    <Content Include="Website\Scripts\npm.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\BasicWebServer\Clifton.Extensions\Clifton.Extensions.csproj">
+      <Project>{3994ca2a-d499-429a-b04a-3e3ed33d357c}</Project>
+      <Name>Clifton.Extensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\BasicWebServer\Clifton.WebServer\Clifton.WebServer.csproj">
+      <Project>{34ba120b-8d01-4dc0-b841-2ae17a8b5258}</Project>
+      <Name>Clifton.WebServer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
