@@ -1,0 +1,344 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Sites</title>
+
+    <link type="text/css" rel="stylesheet" href="/Scripts/jqwidgets/styles/jqx.base.css" />
+    <link type="text/css" rel="stylesheet" href="/Scripts/jqwidgets/styles/jqx.office.css" />
+
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxscrollbar.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdata.js"></script> 
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdatatable.js"></script> 
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxtooltip.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxinput.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var rowIndex;       // The index of the selected row.
+            var recordID;          // Our ID field for the selected record.
+
+            $("#siteTable").on('rowSelect', function (event) {
+                rowindex = event.args.index;
+
+                // Ridiculous way I have manage the record ID for new records.
+                if (event.args.row.Id == null) {
+                    recordID = event.args.row.uid;
+                }
+                else {
+                    recordID = event.args.row.Id;
+                }
+            });
+
+            // prepare the data
+            var srcSites =
+            {
+                dataType: "json",
+                dataFields: [
+                    { name: 'Id', type: 'integer' },
+                    { name: 'Name', type: 'string' },
+                    { name: 'Municipality', type: 'string' },
+                    { name: 'State', type: 'string' },
+                    { name: 'ContactName', type: 'string' },
+                    { name: 'ContactPhone', type: 'string' },
+                    { name: 'ContactEmail', type: 'string' },
+                ],
+                id: 'Id',
+                url: '/sitelist',
+                addRow: function (rowID, rowData, position, commit) {
+                    // updateSite will do an insert or an update based on whether the PK field is in the dataset or not.
+                    $.post("/addSite", rowData)
+                        .success(function (data) {
+                            if (data != "-1") {
+                                // Give jqDataTable the record ID so it's set up.
+                                commit(true, data);
+
+                                // We need to put in some initial value for the row to display with the correct height.  Sigh.  
+                                // This is some stupidity on the part of jqWidget's jqDataTable control.
+                                // This has to happen after the commit, so that it's row 0.
+                                // Sadly, setting the Id field does not work!!!  Stupid jqDataTable control again.
+                                $("#siteTable").jqxDataTable('updateRow', 0, { 'Id': data, 'Name': "new site" });
+                                // And, the update above takes the widget out of edit mode, so we have to put it back into edit mode.
+                                // We also select the new row, otherwise the row selector visual indicator is on the wrong row!
+                                // But first, we have to clear the selection, because multi-row selection is possibly enabled.
+                                // This is not necessary if you put the grid into singleRow selection with the selectionMode option.
+                                // $("#siteTable").jqxDataTable('clearSelection', 0);
+                                $("#siteTable").jqxDataTable('selectRow', 0);
+                                $("#siteTable").jqxDataTable('beginRowEdit', 0);
+                            }
+                        });
+
+                },
+
+                deleteRow: function (rowID, commit) {
+                    // synchronize with the server - send delete command
+                    // call commit with parameter true if the synchronization with the server is successful 
+                    // and with parameter false if the synchronization failed.
+                    commit(true);
+
+                    $.ajax({
+                        url: "/deleteSite",
+                        async: true,
+                        cache: false,
+                        type: "post",
+                        data: {id: recordID},
+                        success: function (data) {
+                            if (data != "OK") {
+                                // We need to update the row's ID with the value returned from the database.
+                                alert("A problem occurred trying to delete the record: " + data);
+                            }
+                        },
+                        fail: function (data) {
+                            alert("A problem occurred trying to delete the record.");
+                        }
+                    });
+                },
+                updateRow: function (rowID, rowData, commit) {
+                    // synchronize with the server - send update command
+                    // call commit with parameter true if the synchronization with the server is successful 
+                    // and with parameter false if the synchronization failed.
+                    commit(true);
+
+                    $.post("/updateSite", rowData)
+                        .success(function (data) {
+                            if (data != "-1") {
+                                // We need to update the row's ID with the value returned from the database.
+                                $("#siteTable").jqxDataTable('updateRow', rowID, { 'Id': data });
+                                recordID = data;
+                            }
+                        })
+                        .fail(function (data) {
+                            alert("A problem occurred trying to save the changes.");
+                        });
+                },
+            };
+
+            var daSites = new $.jqx.dataAdapter(srcSites);
+            var theme = "outlook";
+
+            $("#siteTable").jqxDataTable(
+            {
+                autoRowHeight: false,
+                width: "90%",
+                height: "400px",
+                pageable: true,
+                source: daSites,
+                sortable: true,
+                columnsResize: true,
+                theme: 'office',
+                altrows: true,
+                editable: true,
+                pagerButtonsCount: 8,
+                selectionMode: "singleRow",
+                
+                showToolbar: true,
+                toolbarHeight: 35,
+                renderToolbar: function (toolBar)
+                {
+                    var toTheme = function (className) {
+                        if (theme == "") return className;
+                        return className + " " + className + "-" + theme;
+                    }
+                    // appends buttons to the status bar.
+                    var container = $("<div style='overflow: hidden; position: relative; height: 100%; width: 100%;'></div>");
+                    var buttonTemplate = "<div style='float: left; padding: 3px; margin: 2px;'><div style='margin: 4px; width: 16px; height: 16px;'></div></div>";
+                    var addButton = $(buttonTemplate);
+                    var editButton = $(buttonTemplate);
+                    var deleteButton = $(buttonTemplate);
+                    var cancelButton = $(buttonTemplate);
+                    var updateButton = $(buttonTemplate);
+                    container.append(addButton);
+                    container.append(editButton);
+                    container.append(deleteButton);
+                    container.append(cancelButton);
+                    container.append(updateButton);
+                    toolBar.append(container);
+                    addButton.jqxButton({ cursor: "pointer", enableDefault: false, height: 25, width: 25 });
+                    addButton.find('div:first').addClass(toTheme('jqx-icon-plus'));
+                    addButton.jqxTooltip({ position: 'bottom', content: "Add" });
+                    editButton.jqxButton({ cursor: "pointer", disabled: true, enableDefault: false, height: 25, width: 25 });
+                    editButton.find('div:first').addClass(toTheme('jqx-icon-edit'));
+                    editButton.jqxTooltip({ position: 'bottom', content: "Edit" });
+                    deleteButton.jqxButton({ cursor: "pointer", disabled: true, enableDefault: false, height: 25, width: 25 });
+                    deleteButton.find('div:first').addClass(toTheme('jqx-icon-delete'));
+                    deleteButton.jqxTooltip({ position: 'bottom', content: "Delete" });
+                    updateButton.jqxButton({ cursor: "pointer", disabled: true, enableDefault: false, height: 25, width: 25 });
+                    updateButton.find('div:first').addClass(toTheme('jqx-icon-save'));
+                    updateButton.jqxTooltip({ position: 'bottom', content: "Save Changes" });
+                    cancelButton.jqxButton({ cursor: "pointer", disabled: true, enableDefault: false, height: 25, width: 25 });
+                    cancelButton.find('div:first').addClass(toTheme('jqx-icon-cancel'));
+                    cancelButton.jqxTooltip({ position: 'bottom', content: "Cancel" });
+                    var updateButtons = function (action) {
+                        switch (action) {
+                            case "Select":
+                                addButton.jqxButton({ disabled: false });
+                                deleteButton.jqxButton({ disabled: false });
+                                editButton.jqxButton({ disabled: false });
+                                cancelButton.jqxButton({ disabled: true });
+                                updateButton.jqxButton({ disabled: true });
+                                break;
+                            case "Unselect":
+                                addButton.jqxButton({ disabled: false });
+                                deleteButton.jqxButton({ disabled: true });
+                                editButton.jqxButton({ disabled: true });
+                                cancelButton.jqxButton({ disabled: true });
+                                updateButton.jqxButton({ disabled: true });
+                                break;
+                            case "Edit":
+                                addButton.jqxButton({ disabled: true });
+                                deleteButton.jqxButton({ disabled: true });
+                                editButton.jqxButton({ disabled: true });
+                                cancelButton.jqxButton({ disabled: false });
+                                updateButton.jqxButton({ disabled: false });
+                                break;
+                            case "End Edit":
+                                addButton.jqxButton({ disabled: false });
+                                deleteButton.jqxButton({ disabled: false });
+                                editButton.jqxButton({ disabled: false });
+                                cancelButton.jqxButton({ disabled: true });
+                                updateButton.jqxButton({ disabled: true });
+                                break;
+                        }
+                    }
+                    var rowIndex = null;
+                    $("#siteTable").on('rowSelect', function (event) {
+                        var args = event.args;
+                        rowIndex = args.index;
+                        updateButtons('Select');
+                    });
+                    $("#siteTable").on('rowUnselect', function (event) {
+                        updateButtons('Unselect');
+                    });
+                    $("#siteTable").on('rowEndEdit', function (event) {
+                        updateButtons('End Edit');
+                    });
+                    $("#siteTable").on('rowBeginEdit', function (event) {
+                        updateButtons('Edit');
+                    });
+                    addButton.click(function (event) {
+                        if (!addButton.jqxButton('disabled')) {
+                            // add new empty row.
+                            $("#siteTable").jqxDataTable('addRow', null, {}, 'first');
+                            // select the first row and clear the selection.
+                            $("#siteTable").jqxDataTable('clearSelection');
+                            $("#siteTable").jqxDataTable('selectRow', 0);
+                            // edit the new row.
+                            $("#siteTable").jqxDataTable('beginRowEdit', 0);
+                            updateButtons('add');
+                        }
+                    });
+                    cancelButton.click(function (event) {
+                        if (!cancelButton.jqxButton('disabled')) {
+                            // cancel changes.
+                            $("#siteTable").jqxDataTable('endRowEdit', rowIndex, true);
+                        }
+                    });
+                    updateButton.click(function (event) {
+                        if (!updateButton.jqxButton('disabled')) {
+                            // save changes.
+                            $("#siteTable").jqxDataTable('endRowEdit', rowIndex, false);
+                        }
+                    });
+                    editButton.click(function () {
+                        if (!editButton.jqxButton('disabled')) {
+                            $("#siteTable").jqxDataTable('beginRowEdit', rowIndex);
+                            updateButtons('edit');
+                        }
+                    });
+                    deleteButton.click(function () {
+                        if (!deleteButton.jqxButton('disabled')) {
+                            $("#siteTable").jqxDataTable('deleteRow', rowIndex);
+                            updateButtons('delete');
+                        }
+                    });
+                },
+
+                editSettings: { saveOnPageChange: true, saveOnBlur: true, saveOnSelectionChange: false, cancelOnEsc: true, saveOnEnter: true, editOnDoubleClick: false, editOnF2: false },
+                columns: [
+                  { text: 'Name', dataField: 'Name', width: "15%" },
+                  { text: 'Municipality', dataField: 'Municipality', width: "15%" },
+                  { text: 'State', dataField: 'State', width:"5%"},
+                  { text: 'Contact Name', dataField: 'ContactName', width:"20%" },
+                  { text: 'Contact Phone', dataField: 'ContactPhone', width: "15%" },
+                  { text: 'Contact Email', dataField: 'ContactEmail', width: "30%" },
+
+// No edit buttons in the grid itself.  We're using the toolbar.
+/*                  {
+                        text: 'Edit', cellsAlign: 'center', align: "center", columnType: 'none', editable: false, sortable: false, dataField: null, width:"10%", cellsRenderer: function (row, column, value) {
+                            // render custom column.
+                            return "<button data-row='" + row + "' class='editButtons'>Edit</button><button style='display: none; margin-left: 5px;' data-row='" + row + "' class='cancelButtons'>Cancel</button>";
+                        }
+                  }
+*/
+
+                ],
+                // We're using the toolbar now.
+                /*
+                rendering: function () {
+                    // destroys all buttons.
+                    if ($(".editButtons").length > 0) {
+                        $(".editButtons").jqxButton('destroy');
+                    }
+                    if ($(".cancelButtons").length > 0) {
+                        $(".cancelButtons").jqxButton('destroy');
+                    }
+                },
+                rendered: function () {
+                    if ($(".editButtons").length > 0) {
+                        $(".cancelButtons").jqxButton();
+                        $(".editButtons").jqxButton();
+
+                        var editClick = function (event) {
+                            var target = $(event.target);
+                            // get button's value.
+                            var value = target.val();
+                            // get clicked row.
+                            var rowIndex = parseInt(event.target.getAttribute('data-row'));
+                            if (isNaN(rowIndex)) {
+                                return;
+                            }
+                            if (value == "Edit") {
+                                // begin edit.
+                                $("#siteTable").jqxDataTable('beginRowEdit', rowIndex);
+                                target.parent().find('.cancelButtons').show();
+                                target.val("Save");
+                            }
+                            else {
+                                // end edit and save changes.
+                                target.parent().find('.cancelButtons').hide();
+                                target.val("Edit");
+                                $("#siteTable").jqxDataTable('endRowEdit', rowIndex);
+                            }
+                        }
+                        $(".editButtons").on('click', function (event) {
+                            editClick(event);
+                        });
+
+                        $(".cancelButtons").click(function (event) {
+                            // end edit and cancel changes.
+                            var rowIndex = parseInt(event.target.getAttribute('data-row'));
+                            if (isNaN(rowIndex)) {
+                                return;
+                            }
+                            $("#siteTable").jqxDataTable('endRowEdit', rowIndex, true);
+                        });
+                    }
+                },
+                */
+            });
+
+        });
+    </script>
+
+</head>
+<body>
+    <div>
+        <h1>Site Management</h1>
+    </div>
+    <div id="siteTable"></div>
+</body>
+</html>
