@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Clifton.ExtensionMethods;
 using Clifton.ValueConverter;
 
+using dpworkswebsite.Models;
+
 namespace dpworkswebsite.Services
 {
 	/// <summary>
@@ -34,6 +36,30 @@ namespace dpworkswebsite.Services
 		{
 			// Initialize the connection string from the app.config file.
 			connectionString = ConfigurationManager.ConnectionStrings["ems"].ConnectionString;
+		}
+
+		/// <summary>
+		/// Return the collection of records in the specified view.
+		/// </summary>
+		public DataTable Query(ViewInfo view)
+		{
+			DataTable dt = new DataTable();
+			IDbConnection conn = OpenConnection();
+			IDbCommand cmd = conn.CreateCommand();
+
+			// Build the query:
+			StringBuilder sb = new StringBuilder("select ");
+			sb.Append(String.Join(", ", view.Fields.Select(f => f.FieldName)));
+			sb.Append(" from ");
+			sb.Append(view.TableName);
+
+			// Get the data.
+			cmd.CommandText = sb.ToString();
+			SqlDataAdapter da = new SqlDataAdapter((SqlCommand)cmd);
+			da.Fill(dt);
+			CloseConnection(conn);
+
+			return dt;
 		}
 
 		/// <summary>

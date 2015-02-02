@@ -18,33 +18,7 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-
-            var rowIndex;       // The index of the selected row.
-            var recordID;          // Our ID field for the selected record.
-            var tableNameID = "#siteTable";
-            var tableDataUrl = "/sitelist";
-            var addRecordUrl = "/addSite?__CSRFToken__=@CSRFValue@";
-            var updateRecordUrl = "/updateSite?__CSRFToken__=@CSRFValue@";
-            var deleteRecordUrl = "/deleteSite?__CSRFToken__=@CSRFValue@";
-            var addRecordInitField = "Name";
-            var addRecordInitValue = "new site";
-            var fields = [
-                    { name: 'Id', type: 'integer' },
-                    { name: 'Name', type: 'string' },
-                    { name: 'Municipality', type: 'string' },
-                    { name: 'State', type: 'string' },
-                    { name: 'ContactName', type: 'string' },
-                    { name: 'ContactPhone', type: 'string' },
-                    { name: 'ContactEmail', type: 'string' },
-            ];
-            var columns = [
-                  { text: 'Name', dataField: 'Name', width: "15%" },
-                  { text: 'Municipality', dataField: 'Municipality', width: "15%" },
-                  { text: 'State', dataField: 'State', width: "5%" },
-                  { text: 'Contact Name', dataField: 'ContactName', width: "20%" },
-                  { text: 'Contact Phone', dataField: 'ContactPhone', width: "15%" },
-                  { text: 'Contact Email', dataField: 'ContactEmail', width: "30%" },
-            ];
+            // @InitRecordInfo@
 
             $(tableNameID).on('rowSelect', function (event) {
                 rowindex = event.args.index;
@@ -75,28 +49,34 @@
                         data: rowData,
                         success: function (data) {
                             if (data != "-1") {
-                                // Give jqDataTable the record ID so it's set up.
-                                commit(true, data);
+                                if (data == "") {       // will return an empty string on a CSRF mismatch.
+                                    commit(false);
+                                    alert("A problem occurred trying to add/update the record.");
+                                } else {
+                                    // Give jqDataTable the record ID so it's set up.
+                                    commit(true, data);
 
-                                // We need to put in some initial value for the row to display with the correct height.  Sigh.  
-                                // This is some stupidity on the part of jqWidget's jqDataTable control.
-                                // This has to happen after the commit, so that it's row 0.
-                                // Sadly, setting the Id field does not work!!!  Stupid jqDataTable control again.
-                                var elements = {};      // We have to create the k-v array "manually" because we can't say {addRecordInitField : addRecordInitValue} 
-                                elements[addRecordInitField] = addRecordInitValue;
-                                elements["Id"] = data;          // This doesn't actually do what I want it to do.
-                                $(tableNameID).jqxDataTable('updateRow', 0, elements);
-                                // And, the update above takes the widget out of edit mode, so we have to put it back into edit mode.
-                                // We also select the new row, otherwise the row selector visual indicator is on the wrong row!
+                                    // We need to put in some initial value for the row to display with the correct height.  Sigh.  
+                                    // This is some stupidity on the part of jqWidget's jqDataTable control.
+                                    // This has to happen after the commit, so that it's row 0.
+                                    // Sadly, setting the Id field does not work!!!  Stupid jqDataTable control again.
+                                    var elements = {};      // We have to create the k-v array "manually" because we can't say {addRecordInitField : addRecordInitValue} 
+                                    elements[addRecordInitField] = addRecordInitValue;
+                                    elements["Id"] = data;          // This doesn't actually do what I want it to do.
+                                    $(tableNameID).jqxDataTable('updateRow', 0, elements);
+                                    // And, the update above takes the widget out of edit mode, so we have to put it back into edit mode.
+                                    // We also select the new row, otherwise the row selector visual indicator is on the wrong row!
 
-                                // But first, we have to clear the selection, because multi-row selection is possibly enabled.
-                                // This is not necessary if you put the grid into singleRow selection with the selectionMode option.
-                                // $(tableNameID).jqxDataTable('clearSelection', 0);
+                                    // But first, we have to clear the selection, because multi-row selection is possibly enabled.
+                                    // This is not necessary if you put the grid into singleRow selection with the selectionMode option.
+                                    // $(tableNameID).jqxDataTable('clearSelection', 0);
 
-                                $(tableNameID).jqxDataTable('selectRow', 0);
-                                $(tableNameID).jqxDataTable('beginRowEdit', 0);
+                                    $(tableNameID).jqxDataTable('selectRow', 0);
+                                    $(tableNameID).jqxDataTable('beginRowEdit', 0);
+                                }
                             }
                             else {
+                                // We should never get -1 back from the server.
                                 commit(false);
                                 alert("A problem occurred trying to add the record.");
                             }

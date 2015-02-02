@@ -10,6 +10,7 @@ using Clifton.ExtensionMethods;
 using Clifton.WebServer;
 
 using dpworkswebsite.Controllers;
+using dpworkswebsite.Models;
 
 // Book notes:
 // Handling fonts
@@ -43,17 +44,20 @@ namespace dpworkswebsite
 			};
 
 			Server.postProcess = PostProcessor;
+			GenericTableController sites = new GenericTableController()
+			{
+				TableName = "#siteTable",
+				CallbackObjectName = "site",
+				InitField = "Name",
+				InitValue = "new site",
+				View = InitializeSiteView(),
+			};
 
 			//Server.AddRoute(new Route() { Verb = Router.GET, Path = "/", Handler = new AnonymousRouteHandler(LoginController.ValidateSession) });
 			//Server.AddRoute(new Route() { Verb = Router.GET, Path = "/index", Handler = new AnonymousRouteHandler(LoginController.ValidateSession) });
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/login", Handler = new AnonymousRouteHandler(LoginController.ValidateClient) });
-			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/sites", Handler = new AdminRouteHandler() });
 
-			// AJAX requests / postbacks
-			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/sitelist", Handler = new AdminRouteHandler(SiteController.GetSiteList) });
-			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/updatesite", Handler = new AdminRouteHandler(SiteController.UpdateSite) });
-			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/addsite", Handler = new AdminRouteHandler(SiteController.AddSite) });
-			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/deletesite", Handler = new AdminRouteHandler(SiteController.DeleteSite) });
+			AddRoutes("/sites", "site", sites);
 
 			Server.Start(websitePath);
 			System.Diagnostics.Process.Start("http://localhost/Sites");
@@ -116,6 +120,31 @@ namespace dpworkswebsite
 			}
 
 			return ret;
+		}
+
+		private static ViewInfo InitializeSiteView()
+		{
+			ViewInfo view = new ViewInfo() { TableName = "SiteProfile"};
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType=typeof(int), IsPK=true });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Name", Caption = "Name", Width = "15%", DataType=typeof(string)});
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Municipality", FieldName = "Municipality", Width = "15%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "State", FieldName = "State", Width = "5%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Name", FieldName = "ContactName", Width = "20%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Phone", FieldName = "ContactPhone", Width = "15%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Email", FieldName = "ContactEmail", Width = "30%", DataType=typeof(string) });
+
+			return view;
+		}
+
+		private static void AddRoutes(string url, string callbackObjectName, GenericTableController controller)
+		{
+			Server.AddRoute(new Route() { Verb = Router.GET, Path = url, Handler = new AdminRouteHandler(), PostProcess = controller.Initialize });
+
+			// AJAX requests / postbacks
+			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/" + callbackObjectName + "list", Handler = new AdminRouteHandler(controller.GetRecords) });
+			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/update" + callbackObjectName, Handler = new AdminRouteHandler(controller.UpdateRecord) });
+			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/add" + callbackObjectName, Handler = new AdminRouteHandler(controller.AddRecord) });
+			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/delete" + callbackObjectName, Handler = new AdminRouteHandler(controller.DeleteRecord) });
 		}
 	}
 }
