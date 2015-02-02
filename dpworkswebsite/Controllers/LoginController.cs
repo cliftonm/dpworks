@@ -34,10 +34,11 @@ namespace dpworkswebsite.Controllers
 			ResponsePacket ret = null;
 
 			// TODO: Do real login validation
-			if ((data["email"] == "a@foo.com") && (data["password"] == "admin"))
+			if ((data["email"] == "marc.clifton@gmail.com") && (data["password"] == "mememe!"))
 			{
 				// When validated, the user is authorized to view pages requiring authorization.
 				session.Authorized = true;
+				session.IsAdmin(true);
 				ret = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
 			}
 			else

@@ -19,6 +19,8 @@ using dpworkswebsite.Controllers;
 // Session management (discard old sessions)
 // AJAX post response is text?  not Json formatted data?  Oh wait, if specifying json content, the content must be formatted correctly!?  See SiteController.UpdateSite
 // The different postback formats: JSON, key-value pairs, what else???
+// Handling CSRF in not GET requests
+// Handling CSRF in AJAX requests
 
 namespace dpworkswebsite
 {
@@ -28,6 +30,7 @@ namespace dpworkswebsite
 
 		static void Main(string[] args)
 		{
+			Utils.SetConsoleWindowPosition(-1150, 110);
 			websitePath = GetWebsitePath();
 			Server.onError = ErrorHandler;
 
