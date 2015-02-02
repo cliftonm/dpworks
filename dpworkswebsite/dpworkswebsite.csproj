@@ -48,8 +48,6 @@
     <Compile Include="AdminRouteHandler.cs" />
     <Compile Include="Controllers\GenericTableController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
-    <Compile Include="Controllers\SiteController.cs" />
-    <Compile Include="Models\SiteModel.cs" />
     <Compile Include="Models\ViewInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -83,12 +81,15 @@
     <Content Include="Website\Pages\ErrorPages\serverError.html" />
     <Content Include="Website\Pages\ErrorPages\unknownType.html" />
     <Content Include="Website\Pages\ErrorPages\validationError.html" />
+    <Content Include="Website\Pages\laborRates.html" />
+    <Content Include="Website\Pages\materials.html" />
     <Content Include="Website\Pages\sites.html" />
     <Content Include="Website\Pages\_footer.html" />
     <Content Include="Website\Pages\index.html" />
     <Content Include="Website\Pages\_layout.html" />
     <Content Include="Website\Pages\login.html" />
     <Content Include="Website\Pages\_menubar.html" />
+    <Content Include="Website\Pages\_tableEditor.html" />
     <Content Include="Website\Scripts\bootstrap.js" />
     <Content Include="Website\Scripts\bootstrap.min.js" />
     <Content Include="Website\Scripts\csi.js" />
@@ -97,6 +98,7 @@
     <Content Include="Website\Scripts\knockout-3.2.0.js" />
     <Content Include="Website\Scripts\myscripts.js" />
     <Content Include="Website\Scripts\npm.js" />
+    <Content Include="Website\Pages\units.html" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\BasicWebServer\Clifton.Extensions\Clifton.Extensions.csproj">
