@@ -11,6 +11,7 @@ using Clifton.WebServer;
 
 using dpworkswebsite.Controllers;
 using dpworkswebsite.Models;
+using dpworkswebsite.Services;
 
 // Book notes:
 // Handling fonts
@@ -212,6 +213,7 @@ namespace dpworkswebsite
 				InitField = "Name",
 				InitValue = "new unit",
 				View = InitializeUnitsView(),
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
 			};
 
 			return controller;
@@ -240,6 +242,7 @@ namespace dpworkswebsite
 				InitField = "Name",
 				InitValue = "new item",
 				View = InitializeMaterialView(),
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
 			};
 
 			return controller;
@@ -268,6 +271,7 @@ namespace dpworkswebsite
 				InitField = "Position",
 				InitValue = "new position",
 				View = InitializeLaborRatesView(),
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
 			};
 
 			return controller;

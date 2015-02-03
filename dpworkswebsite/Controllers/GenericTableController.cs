@@ -23,11 +23,23 @@ namespace dpworkswebsite.Controllers
 		public string InitValue { get; set; }
 		public ViewInfo View { get; set; }
 		public string CallbackObjectName { get; set; }
+		public Func<Session, SqlFragment> WhereClause { get; set; }
 
 		public ResponsePacket GetRecords(Session session, Dictionary<string, string> kvParams)
 		{
 			DbService db = new Services.DbService();
-			DataTable dt = db.Query(View);
+
+			// Get the where clause and associated parameters for querying the view.
+			string sqlWhere = null;
+			Dictionary<string, object> parms = null;
+			WhereClause.IfNotNull(w =>
+				{
+					SqlFragment fragment = w(session);
+					sqlWhere = fragment.Sql;
+					parms = fragment.Parameters;
+				});
+
+			DataTable dt = db.Query(View, sqlWhere, parms);
 			string json = JsonConvert.SerializeObject(dt);
 
 			return new ResponsePacket() { Data = Encoding.UTF8.GetBytes(json), ContentType = "application/json" };

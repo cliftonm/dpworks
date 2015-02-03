@@ -28,6 +28,17 @@ namespace dpworkswebsite.Services
 		}
 	}
 
+	public class SqlFragment
+	{
+		public string Sql { get; set; }
+		public Dictionary<string, object> Parameters { get; set; }
+
+		public SqlFragment()
+		{
+			Parameters = new Dictionary<string, object>();
+		}
+	}
+
 	public class DbService
 	{
 		protected string connectionString;
@@ -41,7 +52,7 @@ namespace dpworkswebsite.Services
 		/// <summary>
 		/// Return the collection of records in the specified view.
 		/// </summary>
-		public DataTable Query(ViewInfo view)
+		public DataTable Query(ViewInfo view, string whereClause = null, Dictionary<string, object> parms = null)
 		{
 			DataTable dt = new DataTable();
 			IDbConnection conn = OpenConnection();
@@ -52,6 +63,10 @@ namespace dpworkswebsite.Services
 			sb.Append(String.Join(", ", view.Fields.Select(f => f.FieldName)));
 			sb.Append(" from ");
 			sb.Append(view.TableName);
+			
+			// Append any where clause
+			whereClause.IfNotNull(w => sb.Append(whereClause.Spaced()));
+			parms.IfNotNull(p => p.ForEach(parm => cmd.Parameters.Add(new SqlParameter(parm.Key, parm.Value))));
 
 			// Get the data.
 			cmd.CommandText = sb.ToString();
