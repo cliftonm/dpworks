@@ -144,7 +144,7 @@ namespace dpworkswebsite.Services
 			CloseConnection(conn);
 		}
 
-		public decimal InsertOrUpdate(string tableName, Dictionary<string, string> parms, string idField="ID")
+		public decimal InsertOrUpdate(string tableName, Dictionary<string, object> parms, string idField = "ID")
 		{
 			decimal ret = -1;
 
@@ -152,7 +152,7 @@ namespace dpworkswebsite.Services
 
 			// Get the primary key field and value.  We do a case-insensitve search but return the exact matching pkfield name.
 			// Let the caller handle any exception.
-			KeyValuePair<string, string> pkKvp = parms.Where(kvp => kvp.Key.ToLower() == pkField).SingleOrDefault();
+			KeyValuePair<string, object> pkKvp = parms.Where(kvp => kvp.Key.ToLower() == pkField).SingleOrDefault();
 
 			if (String.IsNullOrEmpty(pkKvp.Key))
 			{
@@ -166,7 +166,7 @@ namespace dpworkswebsite.Services
 			return ret;
 		}
 
-		public decimal Insert(string tableName, Dictionary<string, string> parms)
+		public decimal Insert(string tableName, Dictionary<string, object> parms)
 		{
 			// Get the connection and create the command:
 			IDbConnection conn = OpenConnection();
@@ -206,14 +206,14 @@ namespace dpworkswebsite.Services
 		/// The ID field will be removed from the updated field set.
 		/// The parms must include the ID field.
 		/// </summary>
-		public void Update(string tableName, Dictionary<string, string> parms, string idField = "ID")
+		public void Update(string tableName, Dictionary<string, object> parms, string idField = "ID")
 		{
-			KeyValuePair<string, string> pkKvp = GetPK(parms, idField);
+			KeyValuePair<string, object> pkKvp = GetPK(parms, idField);
 			string pkField = pkKvp.Key;
-			string pkValue = pkKvp.Value;
+			object pkValue = pkKvp.Value;
 
 			// Copy the dictionary, so we can remove the PK value from this list.
-			Dictionary<string, string> internalParms = new Dictionary<string, string>(parms);
+			Dictionary<string, object> internalParms = new Dictionary<string, object>(parms);
 			internalParms.Remove(pkField);
 
 			// Get the connection and create the command:
@@ -248,11 +248,11 @@ namespace dpworkswebsite.Services
 		/// Deletes a record for the given PK value in the parms collection.
 		/// We use the collection because it's convenient to pass in the entire set of record fields.
 		/// </summary>
-		public void Delete(string tableName, Dictionary<string, string> parms, string idField = "ID")
+		public void Delete(string tableName, Dictionary<string, object> parms, string idField = "ID")
 		{
-			KeyValuePair<string, string> pkKvp = GetPK(parms, idField);
+			KeyValuePair<string, object> pkKvp = GetPK(parms, idField);
 			string pkField = pkKvp.Key;
-			string pkValue = pkKvp.Value;
+			object pkValue = pkKvp.Value;
 
 			// Get the connection and create the command:
 			IDbConnection conn = OpenConnection();
@@ -333,13 +333,13 @@ namespace dpworkswebsite.Services
 			// Closing a connection doesn't necessarily close it, as .NET implements connection pooling.
 		}
 
-		protected KeyValuePair<string, string> GetPK(Dictionary<string, string> parms, string idField)
+		protected KeyValuePair<string, object> GetPK(Dictionary<string, object> parms, string idField)
 		{
 			string pkField = idField.ToLower();
 
 			// Get the primary key field and value.  We do a case-insensitve search but return the exact matching pkfield name.
 			// Let the caller handle any exception.
-			KeyValuePair<string, string> pkKvp = parms.Where(kvp => kvp.Key.ToLower() == pkField).Single();
+			KeyValuePair<string, object> pkKvp = parms.Where(kvp => kvp.Key.ToLower() == pkField).Single();
 
 			return pkKvp;
 		}

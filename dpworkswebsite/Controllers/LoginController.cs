@@ -14,7 +14,7 @@ namespace dpworkswebsite.Controllers
 		/// <summary>
 		/// If the session is not authorized, redirect to the login page, otherwise perform the default action (by returning null here.)
 		/// </summary>
-		public static ResponsePacket ValidateSession(Session session, Dictionary<string, string> data)
+		public static ResponsePacket ValidateSession(Session session, Dictionary<string, object> data)
 		{
 			ResponsePacket ret = null;
 
@@ -29,12 +29,12 @@ namespace dpworkswebsite.Controllers
 		/// <summary>
 		/// Validate the client's username and password.
 		/// </summary>
-		public static ResponsePacket ValidateClient(Session session, Dictionary<string, string> data)
+		public static ResponsePacket ValidateClient(Session session, Dictionary<string, object> data)
 		{
 			ResponsePacket ret = null;
 
 			// TODO: Do real login validation
-			if ((data["email"] == "marc.clifton@gmail.com") && (data["password"] == "mememe!"))
+			if ((data["email"].ToString() == "marc.clifton@gmail.com") && (data["password"].ToString() == "mememe!"))
 			{
 				// When validated, the user is authorized to view pages requiring authorization.
 				session.Authorized = true;

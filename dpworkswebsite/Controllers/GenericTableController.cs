@@ -14,6 +14,8 @@ using Clifton.WebServer;
 using dpworkswebsite.Models;
 using dpworkswebsite.Services;
 
+// TODO: The exception message should be logged / emailed and potentially should only be reported on screen in debug mode.
+
 namespace dpworkswebsite.Controllers
 {
 	public class GenericTableController
@@ -24,8 +26,9 @@ namespace dpworkswebsite.Controllers
 		public ViewInfo View { get; set; }
 		public string CallbackObjectName { get; set; }
 		public Func<Session, SqlFragment> WhereClause { get; set; }
+		public Func<Session, Dictionary<string, object>> AdditionalInsertParams {get;set;}
 
-		public ResponsePacket GetRecords(Session session, Dictionary<string, string> kvParams)
+		public ResponsePacket GetRecords(Session session, Dictionary<string, object> kvParams)
 		{
 			DbService db = new Services.DbService();
 
@@ -45,7 +48,7 @@ namespace dpworkswebsite.Controllers
 			return new ResponsePacket() { Data = Encoding.UTF8.GetBytes(json), ContentType = "application/json" };
 		}
 
-		public ResponsePacket UpdateRecord(Session session, Dictionary<string, string> kvParams)
+		public ResponsePacket UpdateRecord(Session session, Dictionary<string, object> kvParams)
 		{
 			ResponsePacket resp = null;
 
@@ -53,8 +56,8 @@ namespace dpworkswebsite.Controllers
 			{
 				kvParams = Utils.FixAnnoyingDataIssues(kvParams);
 				DbService db = new Services.DbService();
-				decimal id = db.InsertOrUpdate(View.TableName, kvParams);
-				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes(id.ToString()) };
+				db.Update(View.TableName, kvParams);
+				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
 			}
 			catch (Exception ex)
 			{
@@ -64,7 +67,7 @@ namespace dpworkswebsite.Controllers
 			return resp;
 		}
 
-		public ResponsePacket AddRecord(Session session, Dictionary<string, string> kvParams)
+		public ResponsePacket InsertRecord(Session session, Dictionary<string, object> kvParams)
 		{
 			ResponsePacket resp = null;
 
@@ -72,6 +75,7 @@ namespace dpworkswebsite.Controllers
 			// wants us to add the record with no data, but we have non-nullable columns!
 			// We also should initialize based on the data type!
 			View.Fields.Where(f => !f.IsPK && !f.IsNullable).ForEach(f => kvParams[f.FieldName] = "");
+			AdditionalInsertParams.IfNotNull(p => p(session).ForEach(kvp => kvParams.Add(kvp.Key, kvp.Value)));
 
 			try
 			{
@@ -88,7 +92,7 @@ namespace dpworkswebsite.Controllers
 			return resp;
 		}
 
-		public ResponsePacket DeleteRecord(Session session, Dictionary<string, string> kvParams)
+		public ResponsePacket DeleteRecord(Session session, Dictionary<string, object> kvParams)
 		{
 			ResponsePacket resp = null;
 
@@ -107,7 +111,7 @@ namespace dpworkswebsite.Controllers
 			return resp;
 		}
 
-		public string Initialize(Session session, Dictionary<string, string> parms, string html)
+		public string Initialize(Session session, Dictionary<string, object> parms, string html)
 		{
 			List<string> fields = new List<string>();
 			List<string> columns = new List<string>();

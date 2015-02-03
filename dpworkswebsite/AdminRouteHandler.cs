@@ -14,12 +14,12 @@ namespace dpworkswebsite
 	/// </summary>
 	public class AdminRouteHandler : AuthenticatedExpirableRouteHandler
 	{
-		public AdminRouteHandler(Func<Session, Dictionary<string, string>, ResponsePacket> handler = null)
+		public AdminRouteHandler(Func<Session, Dictionary<string, object>, ResponsePacket> handler = null)
 			: base(handler)
 		{
 		}
 
-		public override ResponsePacket Handle(Session session, Dictionary<string, string> parms)
+		public override ResponsePacket Handle(Session session, Dictionary<string, object> parms)
 		{
 			ResponsePacket ret;
 

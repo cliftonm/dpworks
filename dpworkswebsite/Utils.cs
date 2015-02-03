@@ -22,7 +22,7 @@ namespace dpworkswebsite
 		[DllImport("kernel32.dll", SetLastError = true)]
 		public static extern IntPtr GetConsoleWindow();
 
-		public static Dictionary<string, string> FixAnnoyingDataIssues(Dictionary<string, string> parms)
+		public static Dictionary<string, object> FixAnnoyingDataIssues(Dictionary<string, object> parms)
 		{
 			// Ridiculous behavior of the jqDataTable control when adding records.
 			// The new Id value is actually in UID for new records.
@@ -38,11 +38,11 @@ namespace dpworkswebsite
 			// And this is our fault:
 			parms.Remove("__CSRFToken__");
 
-			Dictionary<string, string> parms2 = new Dictionary<string, string>();
+			Dictionary<string, object> parms2 = new Dictionary<string, object>();
 
 			// Also annoying -- spaces have been encoded with a "+", so we have to put them back to spaces.
 			// TODO: Can this be avoided by using JSON for the data?
-			parms.ForEach(kvp => parms2[kvp.Key] = kvp.Value.Replace("+", " "));
+			parms.ForEach(kvp => parms2[kvp.Key] = kvp.Value.ToString().Replace("+", " "));
 
 			return parms2;
 		}

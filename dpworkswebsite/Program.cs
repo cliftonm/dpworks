@@ -70,7 +70,7 @@ namespace dpworkswebsite
 			AddRoutes("/laborRates", "laborrate", laborRates);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost");
+			System.Diagnostics.Process.Start("http://localhost/sites");
 			Console.ReadLine();
 		}
 
@@ -168,7 +168,7 @@ namespace dpworkswebsite
 			// AJAX requests / postbacks
 			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/" + callbackObjectName + "list", Handler = new AdminRouteHandler(controller.GetRecords) });
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/update" + callbackObjectName, Handler = new AdminRouteHandler(controller.UpdateRecord) });
-			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/add" + callbackObjectName, Handler = new AdminRouteHandler(controller.AddRecord) });
+			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/add" + callbackObjectName, Handler = new AdminRouteHandler(controller.InsertRecord) });
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/delete" + callbackObjectName, Handler = new AdminRouteHandler(controller.DeleteRecord) });
 		}
 
@@ -213,7 +213,8 @@ namespace dpworkswebsite
 				InitField = "Name",
 				InitValue = "new unit",
 				View = InitializeUnitsView(),
-				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = GetSiteIdAsParam(session) },
+				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
 			};
 
 			return controller;
@@ -243,6 +244,7 @@ namespace dpworkswebsite
 				InitValue = "new item",
 				View = InitializeMaterialView(),
 				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
+				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
 			};
 
 			return controller;
@@ -272,6 +274,7 @@ namespace dpworkswebsite
 				InitValue = "new position",
 				View = InitializeLaborRatesView(),
 				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
+				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
 			};
 
 			return controller;
@@ -288,5 +291,14 @@ namespace dpworkswebsite
 			return view;
 		}
 
+		/// <summary>
+		/// return the site ID in a key-value dictionary.
+		/// </summary>
+		/// <param name="session"></param>
+		/// <returns></returns>
+		private static Dictionary<string, object> GetSiteIdAsParam(Session session)
+		{
+			return new Dictionary<string, object>() { { "@SiteId", session.SiteID() } };
+		}
 	}
 }
