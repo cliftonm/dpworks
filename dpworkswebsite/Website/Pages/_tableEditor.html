@@ -120,16 +120,9 @@
                         type: "post",
                         data: rowData,
                         success: function (data) {
-                            if (data != "-1") {
-                                if (data == "") {       // will return an empty string on a CSRF mismatch.
-                                    commit(false);
-                                    alert("A problem occurred trying to add/update the record.");
-                                } else {
-                                    // We need to update the row's ID with the value returned from the database.
-                                    commit(true);
-                                    $(tableNameID).jqxDataTable('updateRow', rowID, { 'Id': data });
-                                    recordID = data;
-                                }
+                            if (data != "OK") {
+                                commit(false);
+                                alert("A problem occurred trying to add/update the record.");
                             }
                             else {
                                 commit(true);
