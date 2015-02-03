@@ -39,6 +39,7 @@ namespace dpworkswebsite.Controllers
 				// When validated, the user is authorized to view pages requiring authorization.
 				session.Authorized = true;
 				session.IsAdmin(true);
+				session.SiteID(1);
 				ret = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
 			}
 			else

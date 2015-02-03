@@ -1,1 +1,56 @@
-﻿Home Page
+﻿<head>
+    <link type="text/css" rel="stylesheet" href="/Scripts/jqwidgets/styles/jqx.base.css" />
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdata.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxscrollbar.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxlistbox.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdropdownlist.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var isAdmin = $IsAdmin;
+            var siteID = $SiteID;
+
+            var siteList =
+            {
+                datatype: "json",
+                datafields: [
+                    { name: 'Id' },
+                    { name: 'Name' }
+                ],
+                url: "/siteList",
+                async: false
+            };
+
+            var daSiteList = new $.jqx.dataAdapter(siteList);
+            $("#siteSelection").jqxDropDownList({ theme: "office", source: daSiteList, displayMember: "Name", valueMember: "Id", width: "200px", height: "25px" });
+
+            // subscribe to the select event.
+            $("#siteSelection").on('select', function (event) {
+                if (event.args) {
+                    var item = event.args.item;
+                    if (item) {
+                        $.post("/selectSite", { siteID: item.value })
+                            .fail(function (data) {
+                                alert("A problem occurred selecting the site.");
+                            });
+                    }
+                }
+            });
+
+            $("#siteSelection").jqxDropDownList("selectItem", siteID);
+
+            if (isAdmin) {
+                $("#siteSelector").show();
+            } else {
+                $("#siteSelector").hide();
+            }
+        });
+    </script>
+</head>
+<body>
+    <div id="siteSelector">
+        <div style="float:left; padding-top:4px; margin-right:5px">Select Site:</div>
+        <div style="float:left" id="siteSelection"></div>
+    </div>
+</body>

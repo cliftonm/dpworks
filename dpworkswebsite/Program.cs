@@ -50,9 +50,18 @@ namespace dpworkswebsite
 			GenericTableController material = InitializeMaterialController();
 			GenericTableController laborRates = InitializeLaborRatesController();
 
-			//Server.AddRoute(new Route() { Verb = Router.GET, Path = "/", Handler = new AnonymousRouteHandler(LoginController.ValidateSession) });
-			//Server.AddRoute(new Route() { Verb = Router.GET, Path = "/index", Handler = new AnonymousRouteHandler(LoginController.ValidateSession) });
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/login", Handler = new AnonymousRouteHandler(LoginController.ValidateClient) });
+			Server.AddRoute(new Route()
+			{
+				Verb = Router.POST,
+				Path = "/selectSite",
+				Handler = new AdminRouteHandler((session, kvparms) =>
+					{
+						// Set the site ID when the admin changes the selected site.
+						session.SiteID(Convert.ToDecimal(kvparms["siteID"]));
+						return new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
+					})
+			});
 
 			AddRoutes("/sites", "site", sites);
 			AddRoutes("/units", "unit", units);
@@ -60,15 +69,13 @@ namespace dpworkswebsite
 			AddRoutes("/laborRates", "laborrate", laborRates);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost/laborRates");
+			System.Diagnostics.Process.Start("http://localhost");
 			Console.ReadLine();
 		}
 
 		public static string PostProcessor(Session session, string fileName, string pageHtml)
 		{
 			pageHtml = Server.DefaultPostProcess(session, fileName, pageHtml);
-
-			pageHtml = pageHtml.Replace("@CurrentYear@", DateTime.Now.Year.ToString());
 
 			// Here we inject the content into the layout page!
 
@@ -83,6 +90,10 @@ namespace dpworkswebsite
 				string layoutHtml = File.ReadAllText(websitePath + "\\Pages\\_layout.html");
 				pageHtml = Merge(pageHtml, layoutHtml, "@Content@");
 			}
+
+			pageHtml = pageHtml.Replace("@CurrentYear@", DateTime.Now.Year.ToString());
+			pageHtml = pageHtml.Replace("$IsAdmin", session.IsAdmin() ? "true" : "false");
+			pageHtml = pageHtml.Replace("$SiteID", session.SiteID().ToString());
 
 			return pageHtml;
 		}
