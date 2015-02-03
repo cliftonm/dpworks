@@ -39,9 +39,10 @@ namespace dpworkswebsite
 			// For testing, always authorized, never expired.
 			Server.onRequest = (session, context) =>
 			{
-				session.Authorized = true;
-				session.UpdateLastConnectionTime();
-				session.IsAdmin(true);
+				// session.Authorized = true;
+				// session.UpdateLastConnectionTime();
+				// session.IsAdmin(true);
+				// Note to myself: DO NOT SET THE SITE ID HERE!  IT WILL OVERRIDE ANY SITE SELECTION.
 			};
 
 			Server.postProcess = PostProcessor;
@@ -50,8 +51,11 @@ namespace dpworkswebsite
 			GenericTableController units = InitializeUnitsController();
 			GenericTableController material = InitializeMaterialController();
 			GenericTableController laborRates = InitializeLaborRatesController();
+			GenericTableController users = InitializeUsersController();
 
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/login", Handler = new AnonymousRouteHandler(LoginController.ValidateClient) });
+			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/logout", Handler = new AnonymousRouteHandler(LoginController.Logout) });
+
 			Server.AddRoute(new Route()
 			{
 				Verb = Router.POST,
@@ -68,9 +72,10 @@ namespace dpworkswebsite
 			AddRoutes("/units", "unit", units);
 			AddRoutes("/materials", "material", material);
 			AddRoutes("/laborRates", "laborrate", laborRates);
+			AddRoutes("/users", "user", users);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost/sites");
+			System.Diagnostics.Process.Start("http://localhost");
 			Console.ReadLine();
 		}
 
@@ -94,6 +99,7 @@ namespace dpworkswebsite
 
 			pageHtml = pageHtml.Replace("@CurrentYear@", DateTime.Now.Year.ToString());
 			pageHtml = pageHtml.Replace("$IsAdmin", session.IsAdmin() ? "true" : "false");
+			pageHtml = pageHtml.Replace("$IsAuthenticated", session.Authenticated ? "true" : "false");
 			pageHtml = pageHtml.Replace("$SiteID", session.SiteID().ToString());
 
 			return pageHtml;
@@ -291,6 +297,44 @@ namespace dpworkswebsite
 			return view;
 		}
 
+		// USERS
+
+		private static GenericTableController InitializeUsersController()
+		{
+			GenericTableController controller = new GenericTableController()
+			{
+				TableName = "#userTable",
+				CallbackObjectName = "user",
+				InitField = "FirstName",
+				InitValue = "new user",
+				View = InitializeUsersView(),
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
+				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
+			};
+
+			return controller;
+		}
+
+		private static ViewInfo InitializeUsersView()
+		{
+			ViewInfo view = new ViewInfo() { TableName = "User" };
+
+			// Hidden fields.
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "RegistrationToken", Visible = false, DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Activated", Visible = false, DataType = typeof(bool) });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "PasswordHash", Visible = false, DataType = typeof(string) });
+
+			view.Fields.Add(new ViewFieldInfo() { Caption = "First Name", FieldName = "FirstName", Width = "15%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Last Name", FieldName = "LastName", Width = "15%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Email", FieldName = "Email", Width = "25%", DataType = typeof(string) });
+
+			return view;
+		}
+
+		// ----------------------- helpers --------------------------
+
 		/// <summary>
 		/// return the site ID in a key-value dictionary.
 		/// </summary>
@@ -298,7 +342,8 @@ namespace dpworkswebsite
 		/// <returns></returns>
 		private static Dictionary<string, object> GetSiteIdAsParam(Session session)
 		{
-			return new Dictionary<string, object>() { { "@SiteId", session.SiteID() } };
+			// Note we specify the column name, not an "@..." parameter name.
+			return new Dictionary<string, object>() { { "SiteId", session.SiteID() } };
 		}
 	}
 }

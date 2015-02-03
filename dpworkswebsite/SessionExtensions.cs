@@ -12,8 +12,10 @@ namespace dpworkswebsite
 	{
 		private const string strIsAdmin = "IsAdmin";
 		private const string strSiteID = "SiteID";
+		private const string strIsAuthenticated = "IsAuthenticated";
 
-		// Set the IsAdmin flag
+		// IsAdmin
+
 		public static void IsAdmin(this Session session, bool isAdmin)
 		{
 			session[strIsAdmin] = isAdmin;
@@ -24,6 +26,8 @@ namespace dpworkswebsite
 		{
 			return session.GetObject<bool>(strIsAdmin);
 		}
+
+		// SiteID
 
 		public static void SiteID(this Session session, decimal id)
 		{

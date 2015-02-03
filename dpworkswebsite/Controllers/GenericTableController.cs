@@ -75,7 +75,8 @@ namespace dpworkswebsite.Controllers
 			// wants us to add the record with no data, but we have non-nullable columns!
 			// We also should initialize based on the data type!
 			View.Fields.Where(f => !f.IsPK && !f.IsNullable).ForEach(f => kvParams[f.FieldName] = "");
-			AdditionalInsertParams.IfNotNull(p => p(session).ForEach(kvp => kvParams.Add(kvp.Key, kvp.Value)));
+			// Replace any existing not nullable field with application-specific defined paramters.
+			AdditionalInsertParams.IfNotNull(p => p(session).ForEach(kvp => kvParams[kvp.Key]=kvp.Value));
 
 			try
 			{

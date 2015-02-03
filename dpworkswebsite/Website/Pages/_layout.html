@@ -14,13 +14,20 @@
         <script type="text/javascript">
             $(document).ready(function () {
                 var isAdmin = $IsAdmin;
+                var isAuthenticated = $IsAuthenticated;
+
+                if (isAuthenticated) {
+                    $(".authenticated").show();
+                    $(".notAuthenticated").hide();
+                } else {
+                    $(".authenticated").hide();
+                    $(".notAuthenticated").show();
+                }
 
                 if (isAdmin) {
-                    $("#adminOnlySites").show();
-                    $("#adminOnlyRoles").show();
+                    $(".adminOnly").show();
                 } else {
-                    $("#adminOnlySites").hide();
-                    $("#adminOnlyRoles").hide();
+                    $(".adminOnly").hide();
                 }
             });
         </script>
@@ -31,7 +38,33 @@
     <!-- BEGIN: Sticky Header -->
         <div id="header_container">
             <div id="header">
-                <div data-include="/_menubar"></div>
+                <!-- Annoyingly, we can't do this because of some interaction with how the data is included vs the "document ready" event. <div data-include="/_menubar"></div> -->
+                <!-- See this issue in csi.js: https://github.com/LexmarkWeb/csi.js/issues/1 -->
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-2" style="text-align:left">DPW Works!</div>
+                        <div class="col-sm-6">
+                            <!-- spacer -->
+                        </div>
+                        <div class="col-sm-1">
+                            <a href="/">Home</a>
+                        </div>
+                        <div class="col-sm-1">
+                            <a href="/about">About</a>
+                        </div>
+                        <div class="col-sm-1">
+                            <a href="/contact">Contact</a>
+                        </div>
+                        <div class="col-sm-1">
+                            <div class="notAuthenticated">
+                                <a href="/login">Login</a>
+                            </div>
+                            <div class="authenticated">
+                                <a href="/logout">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     <!-- END: Sticky Header -->
@@ -40,9 +73,10 @@
         <div id="container" style="height:100%">
             <div id="content" style="height:100%">
                 <div class="row" style="width:100%">
-                    <div class="col-sm-2" style="background: #f0f0f0">
-                        <div class="panelmenu" id="adminOnlySites"><a href="/sites">Sites</a></div>
-                        <div class="panelmenu" id="adminOnlyRoles"><a href="/roles">Roles</a></div>
+                    <div class="col-sm-2 authenticated" style="background: #f0f0f0">
+                        <div class="panelmenu adminOnly"><a href="/sites">Sites</a></div>
+                        <div class="panelmenu adminOnly"><a href="/users">Users</a></div>
+                        <div class="panelmenu adminOnly"><a href="/roles">Roles</a></div>
                         <div class="panelmenu"><a href="/units">Units</a></div>
                         <div class="panelmenu"><a href="/laborRates">Labor Rates</a></div>
                         <div class="panelmenu"><a href="/materials">Materials</a></div>

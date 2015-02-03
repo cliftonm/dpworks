@@ -62,7 +62,7 @@ namespace dpworkswebsite.Services
 			StringBuilder sb = new StringBuilder("select ");
 			sb.Append(String.Join(", ", view.Fields.Select(f => f.FieldName)));
 			sb.Append(" from ");
-			sb.Append(view.TableName);
+			sb.Append(view.TableName.Brackets());
 			
 			// Append any where clause
 			whereClause.IfNotNull(w => sb.Append(whereClause.Spaced()));
@@ -116,16 +116,25 @@ namespace dpworkswebsite.Services
 
 		/// <summary>
 		/// Return a hash of column name and value for the one and only row. 
-		/// Expects that the row exists.
+		/// Returns null if the row doesn't exist.
 		/// </summary>
 		public Dictionary<string, string> QuerySingleRow(string sql, Dictionary<string, object> parms = null)
 		{
-			Dictionary<string, string> ret = new Dictionary<string, string>();
+			Dictionary<string, string> ret = null;
 			DataTable dt = Query(sql, parms);
 
-			foreach (DataColumn dc in dt.Columns)
+			if (dt.Rows.Count == 1)
 			{
-				ret[dc.ColumnName] = dt.Rows[0][dc].ToString();
+				ret = new Dictionary<string, string>();
+				foreach (DataColumn dc in dt.Columns)
+				{
+					ret[dc.ColumnName] = dt.Rows[0][dc].ToString();
+				}
+			}
+			else if (dt.Rows.Count > 1)
+			{
+				Console.WriteLine(sql);
+				throw new ApplicationException("Returned more than one row.");
 			}
 
 			return ret;
@@ -174,7 +183,7 @@ namespace dpworkswebsite.Services
 
 			// Build the update statement:
 			StringBuilder sql = new StringBuilder("insert into");
-			sql.Append(tableName.Spaced());
+			sql.Append(tableName.Brackets().Spaced());
 			sql.Append("(");
 			sql.Append(String.Join(",", parms.Keys));
 			sql.Append(") values (");
@@ -222,7 +231,7 @@ namespace dpworkswebsite.Services
 
 			// Build the update statement:
 			StringBuilder sql = new StringBuilder("update");
-			sql.Append(tableName.Spaced());
+			sql.Append(tableName.Brackets().Spaced());
 			sql.Append("set ");
 			List<string> fieldValues = new List<string>();
 			
@@ -258,7 +267,7 @@ namespace dpworkswebsite.Services
 			IDbConnection conn = OpenConnection();
 			IDbCommand cmd = conn.CreateCommand();
 
-			cmd.CommandText = "delete from " + tableName + " where ID=@ID";
+			cmd.CommandText = "delete from " + tableName.Brackets() + " where ID=@ID";
 			cmd.Parameters.Add(new SqlParameter("@ID", pkValue));
 
 			Console.WriteLine(cmd.CommandText);
