@@ -32,7 +32,7 @@ namespace dpworkswebsite
 
 		static void Main(string[] args)
 		{
-			Utils.SetConsoleWindowPosition(-1150, 110);
+			// Utils.SetConsoleWindowPosition(-1150, 110);
 			websitePath = GetWebsitePath();
 			Server.onError = ErrorHandler;
 
