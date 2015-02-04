@@ -82,10 +82,11 @@
     <Content Include="Website\Pages\ErrorPages\serverError.html" />
     <Content Include="Website\Pages\ErrorPages\unknownType.html" />
     <Content Include="Website\Pages\ErrorPages\validationError.html" />
+    <Content Include="Website\Pages\estimates.html" />
     <Content Include="Website\Pages\laborRates.html" />
     <Content Include="Website\Pages\logout.html" />
     <Content Include="Website\Pages\materials.html" />
-    <Content Include="Website\Pages\newEstimate.html" />
+    <Content Include="Website\Pages\editEstimate.html" />
     <Content Include="Website\Pages\sites.html" />
     <Content Include="Website\Pages\users.html" />
     <Content Include="Website\Pages\_footer.html" />

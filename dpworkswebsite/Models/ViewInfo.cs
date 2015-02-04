@@ -26,6 +26,7 @@ namespace dpworkswebsite.Models
 		public bool IsPK { get; set; }
 		public bool IsNullable { get; set; }
 		public LookupInfo LookupInfo { get; set; }
+		public string SqlFormat { get; set; }
 
 		/// <summary>
 		/// Default value is required on insert of an empty record or missing data.

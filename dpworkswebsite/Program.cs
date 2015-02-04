@@ -63,6 +63,8 @@ namespace dpworkswebsite
 			GenericTableController units = InitializeUnitsController();
 			GenericTableController material = InitializeMaterialController();
 			GenericTableController laborRates = InitializeLaborRatesController();
+			GenericTableController estimates = InitializeEstimateController();
+			GenericTableController estimateMaterials = InitializeEstimateMaterialsController();
 
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/login", Handler = new AnonymousRouteHandler(LoginController.ValidateClient) });
 			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/logout", Handler = new AnonymousRouteHandler(LoginController.Logout) });
@@ -92,9 +94,10 @@ namespace dpworkswebsite
 			AddRoutes("/units", "unit", units);
 			AddRoutes("/materials", "material", material);
 			AddRoutes("/laborRates", "laborrate", laborRates);
+			AddRoutes("/estimates", "estimate", estimates);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost/materials");
+			System.Diagnostics.Process.Start("http://localhost/estimates");
 			Console.ReadLine();
 		}
 
@@ -353,17 +356,87 @@ namespace dpworkswebsite
 			return view;
 		}
 
+		// ESTIMATE
+
+		private static GenericTableController InitializeEstimateController()
+		{
+			GenericTableController controller = new GenericTableController()
+			{
+				TableName = "#estimateTable",
+				CallbackObjectName = "estimate",
+				InitField = "EstimateDate",
+				InitValue = DateTime.Now.ToString("MM/dd/yyyy"),
+				View = InitializeEstimateView(),
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
+				AdditionalInsertParams = (Session session) => new Dictionary<string, object>() 
+				{ 
+					{ "SiteId", session.SiteID() } ,
+					{ "EstimateDate", DateTime.Now.ToString("MM/dd/yyyy") },
+				},
+			};
+
+			return controller;
+		}
+
+		private static ViewInfo InitializeEstimateView()
+		{
+			ViewInfo view = new ViewInfo() { TableName = "Estimate" };
+
+			// Hidden fields.
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Date", FieldName = "EstimateDate", DataType = typeof(DateTime), Width = "20%", SqlFormat = "CONVERT(VARCHAR(10), EstimateDate, 101)" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Road", FieldName = "Road", DataType = typeof(string), Width="80%", DefaultValue="" });
+
+			return view;
+		}
+
+		// ESTIMATE MATERIALS
+
+		private static GenericTableController InitializeEstimateMaterialsController()
+		{
+			GenericTableController controller = new GenericTableController()
+			{
+				TableName = "#materialEstimateTable",
+				CallbackObjectName = "materialEstimate",
+				InitField = "Quantity",
+				InitValue = "0",
+				View = InitializeEstimateMaterialsView(),
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @EstimateId", Parameters = new Dictionary<string, object>() { { "@EstimateId", session.EstimateID() } } },
+				AdditionalInsertParams = (Session session) => GetEstimateIdAsParam(session),
+			};
+
+			return controller;
+		}
+
+		private static ViewInfo InitializeEstimateMaterialsView()
+		{
+			ViewInfo view = new ViewInfo() { TableName = "EstimateMaterial" };
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "EstimateId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "MaterialId", Width="25%", DataType = typeof(decimal), LookupInfo = new LookupInfo() { TableName = "Materials", IdFieldName = "Id", ValueFieldName = "Name" }, DefaultValue=-1 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Quantity", FieldName = "Quantity", Width = "10%", DataType = typeof(decimal), DefaultValue = 0 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Unit Cost", FieldName = "UnitCost", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Total", FieldName = "Total", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
+
+			return view;
+		}
+
 		// ----------------------- helpers --------------------------
 
 		/// <summary>
 		/// return the site ID in a key-value dictionary.
 		/// </summary>
-		/// <param name="session"></param>
-		/// <returns></returns>
 		private static Dictionary<string, object> GetSiteIdAsParam(Session session)
 		{
 			// Note we specify the column name, not an "@..." parameter name.
 			return new Dictionary<string, object>() { { "SiteId", session.SiteID() } };
+		}
+
+		private static Dictionary<string, object> GetEstimateIdAsParam(Session session)
+		{
+			// Note we specify the column name, not an "@..." parameter name.
+			return new Dictionary<string, object>() { { "EstimateId", session.EstimateID() } };
 		}
 
 		private static void SetSiteName(Session session)

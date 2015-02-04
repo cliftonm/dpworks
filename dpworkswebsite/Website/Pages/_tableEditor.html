@@ -293,7 +293,15 @@
 
                 editSettings: { saveOnPageChange: true, saveOnBlur: true, saveOnSelectionChange: false, cancelOnEsc: true, saveOnEnter: true, editOnDoubleClick: false, editOnF2: false },
                 // Must be defined last.
-                columns: [{ text: 'Name', dataField: 'Name', width: '15%'},
+                columns: columns
+
+            });
+
+        });
+
+        // For debugging the editMaterials page and why the dropdown box isn't working, use this for the columns definition:
+        /*
+        [{ text: 'Name', dataField: 'Name', width: '15%'},
                         { text: 'Unit', colummntype: 'template', dataField: 'UnitId', width: '20%', 
                             createEditor: function(row, cellvalue, editor, cellText, width, height) {
                                 editor.jqxDropDownList({ source: daUnitList, displayMember: 'Abbr', valueMember: 'Id', width: width, height: height });
@@ -307,9 +315,6 @@
                             }
                         },
                         { text: 'Cost', dataField: 'UnitCost', width: '20%'}]
-
-            });
-
-        });
+                        */
     </script>
 </head>

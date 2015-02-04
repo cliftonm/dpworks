@@ -60,7 +60,7 @@ namespace dpworkswebsite.Services
 
 			// Build the query:
 			StringBuilder sb = new StringBuilder("select ");
-			sb.Append(String.Join(", ", view.Fields.Select(f => f.FieldName)));
+			sb.Append(String.Join(", ", view.Fields.Select(f => f.SqlFormat== null ? f.FieldName : f.SqlFormat + " as " + f.FieldName)));
 			sb.Append(" from ");
 			sb.Append(view.TableName.Brackets());
 			
