@@ -73,9 +73,11 @@ namespace dpworkswebsite.Controllers
 
 			// TODO: This is very kludgy because of the way jqxDataTable works: it
 			// wants us to add the record with no data, but we have non-nullable columns!
-			// We also should initialize based on the data type!
-			View.Fields.Where(f => !f.IsPK && !f.IsNullable).ForEach(f => kvParams[f.FieldName] = "");
-			// Replace any existing not nullable field with application-specific defined paramters.
+			// As a result, we let application define the default values for an "empty record insert."
+			View.Fields.Where(f => !f.IsPK && !f.IsNullable && f.DefaultValue != null).ForEach(f => kvParams[f.FieldName] = f.DefaultValue);
+			// Replace any existing not nullable field with application-specific defined parameters.
+			// Note that this is a function call, which allows for realtime value updates, as opposed to the default value above, 
+			// which is a one-time assignment on initialization.
 			AdditionalInsertParams.IfNotNull(p => p(session).ForEach(kvp => kvParams[kvp.Key]=kvp.Value));
 
 			try
@@ -117,7 +119,27 @@ namespace dpworkswebsite.Controllers
 			List<string> fields = new List<string>();
 			List<string> columns = new List<string>();
 			View.Fields.ForEach(f => fields.Add("{ name: " + f.FieldName.SingleQuote() + ", type: " + f.GetJavascriptType().SingleQuote() + "}"));
-			View.Fields.Where(f => f.Visible).ForEach(f => columns.Add("{ text: " + f.Caption.SingleQuote() + ", dataField: " + f.FieldName.SingleQuote() + ", width: " + f.Width.SingleQuote() + "}"));
+			View.Fields.Where(f => f.Visible).ForEach(f => 
+				{
+					if (f.LookupInfo == null)
+					{
+						columns.Add("{ text: " + f.Caption.SingleQuote() + 
+							", dataField: " + f.FieldName.SingleQuote() + 
+							", width: " + f.Width.SingleQuote() + 
+							"}\r\n");
+					}
+					else
+					{
+						// Hardcoded to make sure it works first.
+						columns.Add("{ text: " + f.Caption.SingleQuote() +
+							", colummntype: 'template'" +
+							", dataField: " + f.FieldName.SingleQuote() +
+							", width: " + f.Width.SingleQuote() +
+							", createEditor: function(row, cellvalue, editor, cellText, width, height) {editor.jqxDropDownList({source: daUnitList, displayMember: 'Abbr', valueMember: 'Id', width: width, height: height});},\r\n" +
+							"initEditor: function (row, cellvalue, editor, celltext, width, height) {editor.jqxDropDownList({ width: width, height: height });editor.val(cellvalue);},\r\n" +
+							"getEditorValue: function (row, cellvalue, editor) {return editor.val();}}\r\n");
+					}
+				});
 			string fieldArray = String.Join(",", fields);
 			string columnsArray = String.Join(",", columns);
 

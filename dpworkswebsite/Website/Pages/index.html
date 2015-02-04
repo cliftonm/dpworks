@@ -31,6 +31,7 @@
                     var item = event.args.item;
                     if (item) {
                         $.post("/selectSite", { siteID: item.value })
+                            .success(function (data) {$("#siteName").text(data);})
                             .fail(function (data) {
                                 alert("A problem occurred selecting the site.");
                             });

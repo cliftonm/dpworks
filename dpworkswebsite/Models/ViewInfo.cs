@@ -6,6 +6,16 @@ using System.Threading.Tasks;
 
 namespace dpworkswebsite.Models
 {
+	/// <summary>
+	/// Used for handling foreign key lookups.
+	/// </summary>
+	public class LookupInfo
+	{
+		public string TableName { get; set; }
+		public string IdFieldName { get; set; }
+		public string ValueFieldName { get; set; }
+	}
+
 	public class ViewFieldInfo
 	{
 		public string FieldName { get; set; }
@@ -15,10 +25,19 @@ namespace dpworkswebsite.Models
 		public Type DataType { get; set; }
 		public bool IsPK { get; set; }
 		public bool IsNullable { get; set; }
+		public LookupInfo LookupInfo { get; set; }
+
+		/// <summary>
+		/// Default value is required on insert of an empty record or missing data.
+		/// This is tied to the jqxDataTable behavior -- when the user presses "add", we get an "addrecord" AJAX callback!
+		/// Unfortunately, this means that fields I'd like to define as not-nullable end up getting empty string values.  Sigh.
+		/// </summary>
+		public object DefaultValue { get; set; }
 
 		public ViewFieldInfo()
 		{
 			Visible = true;
+			DefaultValue = null;
 		}
 
 		public string GetJavascriptType()

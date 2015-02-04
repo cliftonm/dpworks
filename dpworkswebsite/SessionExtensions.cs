@@ -12,6 +12,7 @@ namespace dpworkswebsite
 	{
 		private const string strIsAdmin = "IsAdmin";
 		private const string strSiteID = "SiteID";
+		private const string strSiteName = "SiteName";
 		private const string strIsAuthenticated = "IsAuthenticated";
 
 		// IsAdmin
@@ -37,6 +38,18 @@ namespace dpworkswebsite
 		public static decimal SiteID(this Session session)
 		{
 			return session.GetObject<decimal>(strSiteID);
+		}
+
+		// SiteName
+
+		public static void SiteName(this Session session, string name)
+		{
+			session[strSiteName] = name;
+		}
+
+		public static string SiteName(this Session session)
+		{
+			return session.GetObject<string>(strSiteName);
 		}
 	}
 }

@@ -18,9 +18,10 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;RunOnLeftMonitor</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -84,6 +85,7 @@
     <Content Include="Website\Pages\laborRates.html" />
     <Content Include="Website\Pages\logout.html" />
     <Content Include="Website\Pages\materials.html" />
+    <Content Include="Website\Pages\newEstimate.html" />
     <Content Include="Website\Pages\sites.html" />
     <Content Include="Website\Pages\users.html" />
     <Content Include="Website\Pages\_footer.html" />

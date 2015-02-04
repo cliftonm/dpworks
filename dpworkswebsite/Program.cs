@@ -32,29 +32,43 @@ namespace dpworkswebsite
 
 		static void Main(string[] args)
 		{
-			// Utils.SetConsoleWindowPosition(-1150, 110);
+#if RunOnLeftMonitor
+			// For my home development system.
+			Utils.SetConsoleWindowPosition(-1150, 110);
+#endif
 			websitePath = GetWebsitePath();
 			Server.onError = ErrorHandler;
 
+			// ======= DEVELOPER MODE ========
 			// For testing, always authorized, never expired.
 			Server.onRequest = (session, context) =>
 			{
-				// session.Authorized = true;
-				// session.UpdateLastConnectionTime();
-				// session.IsAdmin(true);
-				// Note to myself: DO NOT SET THE SITE ID HERE!  IT WILL OVERRIDE ANY SITE SELECTION.
+				session.Authenticated = true;
+				session.UpdateLastConnectionTime();
+				session.IsAdmin(true);
+
+				// Initialize the site if it hasn't been assigned.
+				if (session.SiteID() == 0)
+				{
+					session.SiteID(1);
+					SetSiteName(session);
+				}
 			};
+			// ======= DEVELOPER MODE ========
 
 			Server.postProcess = PostProcessor;
 
 			GenericTableController sites = InitializeSiteController();
+			GenericTableController users = InitializeUsersController();
 			GenericTableController units = InitializeUnitsController();
 			GenericTableController material = InitializeMaterialController();
 			GenericTableController laborRates = InitializeLaborRatesController();
-			GenericTableController users = InitializeUsersController();
 
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/login", Handler = new AnonymousRouteHandler(LoginController.ValidateClient) });
 			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/logout", Handler = new AnonymousRouteHandler(LoginController.Logout) });
+
+			// TODO: Make this an authenticated route when ready.
+			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/newEstimate", Handler = new AnonymousRouteHandler() });
 
 			Server.AddRoute(new Route()
 			{
@@ -64,18 +78,23 @@ namespace dpworkswebsite
 					{
 						// Set the site ID when the admin changes the selected site.
 						session.SiteID(Convert.ToDecimal(kvparms["siteID"]));
-						return new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
+						SetSiteName(session);
+						// Return the site name so that the UI can update the site name in the header.
+						return new ResponsePacket() { Data = Encoding.UTF8.GetBytes(session.SiteName()) };
 					})
 			});
 
+			// These require admin authorization
 			AddRoutes("/sites", "site", sites);
+			AddRoutes("/users", "user", users);
+
+			// TODO: These simply require authentication.
 			AddRoutes("/units", "unit", units);
 			AddRoutes("/materials", "material", material);
 			AddRoutes("/laborRates", "laborrate", laborRates);
-			AddRoutes("/users", "user", users);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost");
+			System.Diagnostics.Process.Start("http://localhost/materials");
 			Console.ReadLine();
 		}
 
@@ -101,6 +120,7 @@ namespace dpworkswebsite
 			pageHtml = pageHtml.Replace("$IsAdmin", session.IsAdmin() ? "true" : "false");
 			pageHtml = pageHtml.Replace("$IsAuthenticated", session.Authenticated ? "true" : "false");
 			pageHtml = pageHtml.Replace("$SiteID", session.SiteID().ToString());
+			pageHtml = pageHtml.Replace("$SiteName", session.SiteName());
 
 			return pageHtml;
 		}
@@ -196,14 +216,14 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeSiteView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "SiteProfile"};
+			ViewInfo view = new ViewInfo() { TableName = "SiteProfile" };
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType=typeof(decimal), IsPK=true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Name", Caption = "Name", Width = "15%", DataType=typeof(string)});
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Municipality", FieldName = "Municipality", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "State", FieldName = "State", Width = "5%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Name", FieldName = "ContactName", Width = "20%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Phone", FieldName = "ContactPhone", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Email", FieldName = "ContactEmail", Width = "30%", DataType=typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Name", Caption = "Name", Width = "15%", DataType=typeof(string), DefaultValue=""});
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Municipality", FieldName = "Municipality", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "State", FieldName = "State", Width = "5%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Name", FieldName = "ContactName", Width = "20%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Phone", FieldName = "ContactPhone", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Email", FieldName = "ContactEmail", Width = "30%", DataType = typeof(string), DefaultValue = "" });
 
 			return view;
 		}
@@ -231,9 +251,9 @@ namespace dpworkswebsite
 			ViewInfo view = new ViewInfo() { TableName = "Unit" };
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Abbreviation", FieldName = "Abbr", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", FieldName = "Name", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Description", FieldName = "Description", Width = "20%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Abbreviation", FieldName = "Abbr", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", FieldName = "Name", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Description", FieldName = "Description", Width = "20%", DataType = typeof(string), DefaultValue = "" });
 
 			return view;
 		}
@@ -261,9 +281,9 @@ namespace dpworkswebsite
 			ViewInfo view = new ViewInfo() { TableName = "Material" };
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", FieldName = "Name", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Unit", FieldName = "UnitId", Width = "20%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Cost", FieldName = "UnitCost", Width = "20%", DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", FieldName = "Name", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Unit", FieldName = "UnitId", Width = "20%", DataType = typeof(decimal), LookupInfo = new LookupInfo() { TableName = "Unit", IdFieldName = "Id", ValueFieldName = "Abbr" }, DefaultValue=-1 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Cost", FieldName = "UnitCost", Width = "20%", DataType = typeof(decimal), DefaultValue=0 });
 
 			return view;
 		}
@@ -291,8 +311,8 @@ namespace dpworkswebsite
 			ViewInfo view = new ViewInfo() { TableName = "LaborRate" };
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Position", FieldName = "Position", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Hourly Rate", FieldName = "HourlyRate", Width = "20%", DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Position", FieldName = "Position", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Hourly Rate", FieldName = "HourlyRate", Width = "20%", DataType = typeof(decimal), DefaultValue=0 });
 
 			return view;
 		}
@@ -322,13 +342,13 @@ namespace dpworkswebsite
 			// Hidden fields.
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
 			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "RegistrationToken", Visible = false, DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Activated", Visible = false, DataType = typeof(bool) });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "PasswordHash", Visible = false, DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "RegistrationToken", Visible = false, DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "Activated", Visible = false, DataType = typeof(bool), DefaultValue = false });
+			view.Fields.Add(new ViewFieldInfo() { FieldName = "PasswordHash", Visible = false, DataType = typeof(string), DefaultValue = "" });
 
-			view.Fields.Add(new ViewFieldInfo() { Caption = "First Name", FieldName = "FirstName", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Last Name", FieldName = "LastName", Width = "15%", DataType = typeof(string) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Email", FieldName = "Email", Width = "25%", DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "First Name", FieldName = "FirstName", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Last Name", FieldName = "LastName", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Email", FieldName = "Email", Width = "25%", DataType = typeof(string), DefaultValue = "" });
 
 			return view;
 		}
@@ -344,6 +364,13 @@ namespace dpworkswebsite
 		{
 			// Note we specify the column name, not an "@..." parameter name.
 			return new Dictionary<string, object>() { { "SiteId", session.SiteID() } };
+		}
+
+		private static void SetSiteName(Session session)
+		{
+			DbService db = new DbService();
+			object obj = db.QueryScalar("select name from siteprofile where id = @SiteId", new Dictionary<string, object>() { { "@SiteId", session.SiteID() } });
+			obj.IfNotNull(name => session.SiteName(name.ToString()));
 		}
 	}
 }

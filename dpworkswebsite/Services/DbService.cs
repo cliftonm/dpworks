@@ -99,7 +99,7 @@ namespace dpworkswebsite.Services
 		/// Return the single field (or first field) specified in the query, as a string.
 		/// DBNull is returned as null
 		/// </summary>
-		public string QueryScalar(string sql, Dictionary<string, object> parms = null)
+		public object QueryScalar(string sql, Dictionary<string, object> parms = null)
 		{
 			// The connection cannot be persisted as everything in these calls must be thread safe.
 			IDbConnection conn = OpenConnection();
@@ -108,7 +108,7 @@ namespace dpworkswebsite.Services
 			parms.IfNotNull((p) => p.ForEach(kvp => cmd.Parameters.Add(new SqlParameter(kvp.Key, kvp.Value))));
 			object obj = cmd.ExecuteScalar();
 
-			string ret = (obj == DBNull.Value ? null : obj.ToString());
+			object ret = (obj == DBNull.Value ? null : obj);
 
 			return ret;
 		}

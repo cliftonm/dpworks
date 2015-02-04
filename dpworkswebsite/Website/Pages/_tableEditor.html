@@ -9,10 +9,26 @@
     <script type="text/javascript" src="/Scripts/jqwidgets/jqxdatatable.js"></script> 
     <script type="text/javascript" src="/Scripts/jqwidgets/jqxtooltip.js"></script>
     <script type="text/javascript" src="/Scripts/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxlistbox.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdropdownlist.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function () {
             // @InitRecordInfo@
+
+            var unitList =
+            {
+                datatype: "json",
+                datafields: [
+                    { name: 'Id', type: 'number' },
+                    { name: 'Abbr', type: 'string' },
+                    { name: 'Name', type: 'string' }
+                ],
+                url: "/unitlist",
+                async: false
+            };
+
+            var daUnitList = new $.jqx.dataAdapter(unitList, { uniqueDataFields: ["Id"] });
 
             $(tableNameID).on('rowSelect', function (event) {
                 rowindex = event.args.index;
@@ -277,7 +293,21 @@
 
                 editSettings: { saveOnPageChange: true, saveOnBlur: true, saveOnSelectionChange: false, cancelOnEsc: true, saveOnEnter: true, editOnDoubleClick: false, editOnF2: false },
                 // Must be defined last.
-                columns: columns,
+                columns: [{ text: 'Name', dataField: 'Name', width: '15%'},
+                        { text: 'Unit', colummntype: 'template', dataField: 'UnitId', width: '20%', 
+                            createEditor: function(row, cellvalue, editor, cellText, width, height) {
+                                editor.jqxDropDownList({ source: daUnitList, displayMember: 'Abbr', valueMember: 'Id', width: width, height: height });
+                            },
+                            initEditor: function (row, cellvalue, editor, celltext, width, height)  {
+                                editor.jqxDropDownList({ width: width, height: height }); editor.val(cellvalue);
+                                editor.val(cellvalue);
+                            },
+                            getEditorValue: function (row, cellvalue, editor) {
+                                return editor.val();
+                            }
+                        },
+                        { text: 'Cost', dataField: 'UnitCost', width: '20%'}]
+
             });
 
         });
