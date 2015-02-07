@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Clifton.WebServer;
+
 namespace dpworkswebsite.Models
 {
 	/// <summary>
@@ -58,6 +60,11 @@ namespace dpworkswebsite.Models
 		/// </summary>
 		public object DefaultValue { get; set; }
 
+		/// <summary>
+		/// If the value must be computed in realtime, use this property.
+		/// </summary>
+		public Func<Session, object> ComputedValue { get; set; }
+
 		public ViewFieldInfo()
 		{
 			Visible = true;
@@ -83,6 +90,10 @@ namespace dpworkswebsite.Models
 
 				case "bool":
 					ret = "boolean";
+					break;
+
+				case "datetime":
+					ret = "string";
 					break;
 			}
 

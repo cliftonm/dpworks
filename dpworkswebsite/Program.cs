@@ -102,7 +102,7 @@ namespace dpworkswebsite
 			AddRoutes("/estimates", "estimate", estimates);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost/materials");
+			System.Diagnostics.Process.Start("http://localhost/estimates");
 			Console.ReadLine();
 		}
 
@@ -374,8 +374,6 @@ namespace dpworkswebsite
 
 		// ESTIMATE
 
-		// TODO: The estimated date must be populated with NOW (not the now of initializing this structure, but the now of when a new estimate is added.)
-
 		private static GenericTableController InitializeEstimateController()
 		{
 			GenericTableController controller = new GenericTableController()
@@ -401,7 +399,16 @@ namespace dpworkswebsite
 			// Hidden fields.
 			view.Fields.Add(new ViewFieldInfo() { TableName = "Estimate", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
 			view.Fields.Add(new ViewFieldInfo() { TableName = "Estimate", FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Date", TableName = "Estimate", FieldName = "EstimateDate", DataType = typeof(DateTime), Width = "20%", SqlFormat = "CONVERT(VARCHAR(10), EstimateDate, 101)" });
+			view.Fields.Add(new ViewFieldInfo()
+			{
+				Caption = "Date",
+				TableName = "Estimate",
+				FieldName = "EstimateDate",
+				DataType = typeof(DateTime),
+				Width = "20%",
+				SqlFormat = "CONVERT(VARCHAR(10), EstimateDate, 101)",
+				ComputedValue = (session) => DateTime.Now.ToString("MM/dd/yyyy"),
+			});
 			view.Fields.Add(new ViewFieldInfo() { Caption = "Road", TableName = "Estimate", FieldName = "Road", DataType = typeof(string), Width = "80%", DefaultValue = "" });
 
 			return view;

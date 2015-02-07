@@ -178,24 +178,13 @@ namespace dpworkswebsite.Controllers
 					}
 				});
 
+			// Create the initializers for the data when a record is added.
 			List<string> initializers = new List<string>();
 
-			View.Fields.Where(f => f.DefaultValue != null && !String.IsNullOrEmpty(f.DefaultValue.ToString())).ForEach(f => 
-				{
-					if (f.DataType == typeof(string))
-					{
-						initializers.Add(f.Alias + ": '" + f.DefaultValue + "'");
-					}
-					else if (f.DataType == typeof(bool))
-					{
-						initializers.Add(f.Alias + ": " + (((bool)f.DefaultValue) ? "true" : "false"));
-					}
-					else
-					{
-						// Without single quotes.
-						initializers.Add(f.Alias + ": " + f.DefaultValue);
-					}
-				});
+			View.Fields.Where(f => f.DefaultValue != null && !String.IsNullOrEmpty(f.DefaultValue.ToString())).ForEach(f => AddInitializer(initializers, f.DataType, f.Alias, f.DefaultValue));
+
+			// Add the computed values to the initializer list.
+			View.Fields.Where(f => f.ComputedValue != null).ForEach(f => AddInitializer(initializers, f.DataType, f.Alias, f.ComputedValue(session)));
 
 			string fieldArray = String.Join(",", fields);
 			string columnsArray = String.Join(",", columns);
@@ -238,6 +227,30 @@ namespace dpworkswebsite.Controllers
 						kvParams[f.Alias] = (id == null) ? -1 : id;
 					}
 				});
+		}
+
+		/// <summary>
+		/// Add an initializer with the appropriate data type / constant correction for Javascript.
+		/// </summary>
+		private void AddInitializer(List<string> initializers, Type dataType, string alias, object val)
+		{
+			if (dataType == typeof(string))
+			{
+				initializers.Add(alias + ": '" + val + "'");
+			}
+			else if (dataType == typeof(bool))
+			{
+				initializers.Add(alias + ": " + (((bool)val) ? "true" : "false"));
+			}
+			else if (dataType == typeof(DateTime))
+			{
+				initializers.Add(alias + ": '" + val + "'");
+			}
+			else
+			{
+				// Without single quotes.
+				initializers.Add(alias + ": " + val);
+			}
 		}
 	}
 }
