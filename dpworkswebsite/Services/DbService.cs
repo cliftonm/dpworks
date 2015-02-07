@@ -124,6 +124,7 @@ namespace dpworkswebsite.Services
 			IDbCommand cmd = conn.CreateCommand();
 			cmd.CommandText = sql;
 			parms.IfNotNull((p) => p.ForEach(kvp => cmd.Parameters.Add(new SqlParameter(kvp.Key, kvp.Value))));
+			Console.WriteLine(sql);
 			object obj = cmd.ExecuteScalar();
 
 			object ret = (obj == DBNull.Value ? null : obj);
@@ -421,7 +422,7 @@ namespace dpworkswebsite.Services
 					// If the alias in the incoming params matches a view in the specified table...
 					// (We have to deal with lowercase because the JSON response might be all in lowercase)
 					// Then we add that field (un-aliased) and its value from the params to the returned collection.
-					parms.SingleOrDefault(kvp => kvp.Key.ToLower() == vfi.Alias.ToLower()).IfTrue(kvp => !String.IsNullOrEmpty(kvp.Key), kvp2=> ret[vfi.FieldName] = kvp2.Value);
+					parms.SingleOrDefault(kvp => kvp.Key.ToLower() == vfi.Alias.ToLower() && (!vfi.IsSqlComputed)).IfTrue(kvp => !String.IsNullOrEmpty(kvp.Key), kvp2=> ret[vfi.FieldName] = kvp2.Value);
 				});
 
 			return ret;

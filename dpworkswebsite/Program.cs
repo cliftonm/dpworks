@@ -62,6 +62,7 @@ namespace dpworkswebsite
 			GenericTableController users = InitializeUsersController();
 			GenericTableController units = InitializeUnitsController();
 			GenericTableController material = InitializeMaterialController();
+			GenericTableController equipment = InitializeEquipmentController();
 			GenericTableController laborRates = InitializeLaborRatesController();
 			GenericTableController estimates = InitializeEstimateController();
 			GenericTableController estimateMaterials = InitializeEstimateMaterialsController();
@@ -70,12 +71,40 @@ namespace dpworkswebsite
 			sites.View.Register();
 			units.View.Register();
 			material.View.Register();
+			laborRates.View.Register();
+			equipment.View.Register();
 
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/login", Handler = new AnonymousRouteHandler(LoginController.ValidateClient) });
 			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/logout", Handler = new AnonymousRouteHandler(LoginController.Logout) });
 
+			// ---------- EDIT MATERIAL ESTIMATE ROUTING ----------
+
 			// TODO: Make this an authenticated route when ready.
-			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/newEstimate", Handler = new AnonymousRouteHandler() });
+			// Custom routing for the three grids on the edit estimate route
+			Server.AddRoute(new Route()
+			{
+				Verb = Router.GET,
+				Path = "/editEstimate",
+				Handler = new AuthenticatedExpirableRouteHandler((session, parms)=>
+				{
+					// Set the estimate ID.
+					session.EstimateID(Convert.ToInt32(parms["id"]));
+					return null;
+				}),
+				PostProcess = (session, parms, html) =>
+				{
+					// Build the html for the material, equipment, and labor grids.
+					html = estimateMaterials.Initialize(session, parms, html);
+
+					return html;
+				}
+			});
+
+			AddAjaxCrudOperations("materialEstimate", estimateMaterials);
+
+			// -----------------------------
+
+			// SITE SELECTION ROUTING
 
 			Server.AddRoute(new Route()
 			{
@@ -92,17 +121,18 @@ namespace dpworkswebsite
 			});
 
 			// These require admin authorization
-			AddRoutes("/sites", "site", sites);
-			AddRoutes("/users", "user", users);
+			AddAdminRoutes("/sites", "site", sites);
+			AddAdminRoutes("/users", "user", users);
 
 			// TODO: These simply require authentication.
 			AddRoutes("/units", "unit", units);
 			AddRoutes("/materials", "material", material);
 			AddRoutes("/laborRates", "laborrate", laborRates);
 			AddRoutes("/estimates", "estimate", estimates);
+			AddRoutes("/equipment", "equipment", equipment);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost/estimates");
+			System.Diagnostics.Process.Start("http://localhost/editEstimate?id=17");
 			Console.ReadLine();
 		}
 
@@ -117,10 +147,12 @@ namespace dpworkswebsite
 				if (pageHtml.Contains("@TableEditor@"))
 				{
 					string customContent = File.ReadAllText(websitePath + "\\Pages\\_tableEditor.html");
-					pageHtml = pageHtml.Replace("@TableEditor@", customContent);
+					// How to read the next line: Replace pageHtml's @TableEditor@ with customContent.
+					pageHtml = Merge(customContent, pageHtml, "@TableEditor@");
 				}
 
 				string layoutHtml = File.ReadAllText(websitePath + "\\Pages\\_layout.html");
+				// How to read the next line: Replace layoutHtml's @Content@ with pageHtml.
 				pageHtml = Merge(pageHtml, layoutHtml, "@Content@");
 			}
 
@@ -195,7 +227,10 @@ namespace dpworkswebsite
 			return ret;
 		}
 
-		private static void AddRoutes(string url, string callbackObjectName, GenericTableController controller)
+		/// <summary>
+		/// Add routes requiring admin, authenticated, expirable handler.
+		/// </summary>
+		private static void AddAdminRoutes(string url, string callbackObjectName, GenericTableController controller)
 		{
 			Server.AddRoute(new Route() { Verb = Router.GET, Path = url, Handler = new AdminRouteHandler(), PostProcess = controller.Initialize });
 
@@ -204,6 +239,22 @@ namespace dpworkswebsite
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/update" + callbackObjectName, Handler = new AdminRouteHandler(controller.UpdateRecord) });
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/add" + callbackObjectName, Handler = new AdminRouteHandler(controller.InsertRecord) });
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/delete" + callbackObjectName, Handler = new AdminRouteHandler(controller.DeleteRecord) });
+		}
+
+		// Add routes with authenticated, expirable handler.
+		private static void AddRoutes(string url, string callbackObjectName, GenericTableController controller)
+		{
+			Server.AddRoute(new Route() { Verb = Router.GET, Path = url, Handler = new AdminRouteHandler(), PostProcess = controller.Initialize });
+			AddAjaxCrudOperations(callbackObjectName, controller);
+		}
+
+		private static void AddAjaxCrudOperations(string callbackObjectName, GenericTableController controller)
+		{
+			// AJAX requests / postbacks
+			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/" + callbackObjectName + "list", Handler = new AuthenticatedExpirableRouteHandler(controller.GetRecords) });
+			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/update" + callbackObjectName, Handler = new AuthenticatedExpirableRouteHandler(controller.UpdateRecord) });
+			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/add" + callbackObjectName, Handler = new AuthenticatedExpirableRouteHandler(controller.InsertRecord) });
+			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/delete" + callbackObjectName, Handler = new AuthenticatedExpirableRouteHandler(controller.DeleteRecord) });
 		}
 
 		// SITES
@@ -306,7 +357,35 @@ namespace dpworkswebsite
 			});
 
 			view.Fields.Add(new ViewFieldInfo() { Caption = "Cost", TableName = "Material", FieldName = "UnitCost", Width = "20%", DataType = typeof(decimal), DefaultValue = 0, Alias="MaterialUnitCost" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Abbr", TableName = "Unit", FieldName = "Abbr", Visible = false, DataType = typeof(string) });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Unit", FieldName = "Abbr", Visible = false, DataType = typeof(string) });
+
+			return view;
+		}
+
+		// EQUIPMENT
+
+		private static GenericTableController InitializeEquipmentController()
+		{
+			GenericTableController controller = new GenericTableController()
+			{
+				DataTableName = "#equipmentTable",
+				CallbackObjectName = "equipment",
+				View = InitializeEquipmentView(),
+				// TODO: The hardcoded "a." in the where clause needs to be eliminated.  Figure out the best way to do this.
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where a.SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
+				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
+			};
+
+			return controller;
+		}
+
+		private static ViewInfo InitializeEquipmentView()
+		{
+			ViewInfo view = new ViewInfo() { Name = "Equipment", Tables = { "Equipment" } };
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Equipment", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Equipment", FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", TableName = "Equipment", FieldName = "Name", Width = "35%", DataType = typeof(string), DefaultValue = "new item" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Hourly Rate", TableName = "Equipment", FieldName = "HourlyRate", Width = "20%", DataType = typeof(decimal), DefaultValue = 0 });
 
 			return view;
 		}
@@ -423,7 +502,7 @@ namespace dpworkswebsite
 				DataTableName = "#materialEstimateTable",
 				CallbackObjectName = "materialEstimate",
 				View = InitializeEstimateMaterialsView(),
-				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @EstimateId", Parameters = new Dictionary<string, object>() { { "@EstimateId", session.EstimateID() } } },
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where EstimateId = @EstimateId", Parameters = new Dictionary<string, object>() { { "@EstimateId", session.EstimateID() } } },
 				AdditionalInsertParams = (Session session) => GetEstimateIdAsParam(session),
 			};
 
@@ -432,13 +511,36 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeEstimateMaterialsView()
 		{
-			ViewInfo view = new ViewInfo() { Name="EstimateMaterial", Tables = {"EstimateMaterial"} };
+			ViewInfo view = new ViewInfo() { Name="EstimateMaterial", Tables = {"EstimateMaterial", "Material"} };
 			view.Fields.Add(new ViewFieldInfo() { TableName = "EstimateMaterial", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
 			view.Fields.Add(new ViewFieldInfo() { TableName = "EstimateMaterial", FieldName = "EstimateId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { TableName = "EstimateMaterial", FieldName = "MaterialId", Width = "25%", DataType = typeof(decimal), LookupInfo = new LookupInfo() { ViewName = "Materials", IdFieldName = "Id", ValueFieldName = "Name" }, DefaultValue = -1 });
+			
+			view.Fields.Add(new ViewFieldInfo()
+			{
+				Caption="Material",
+				TableName = "EstimateMaterial",
+				FieldName = "MaterialId",
+				Width = "25%",
+				DataType = typeof(decimal),
+				Alias = "EstimateMaterialId",
+				LookupInfo = new LookupInfo()
+				{
+					ViewName = "Material",
+					IdFieldName = "Id",
+					ValueFieldName = "Name",
+					AliasedFieldName = "MaterialName", // This is an aliased name from the material list.  Remember this is a view joining Material and Unit
+					Url = "/materialList",
+				},
+				DefaultValue = -1
+			});
+
 			view.Fields.Add(new ViewFieldInfo() { Caption = "Quantity", TableName = "EstimateMaterial", FieldName = "Quantity", Width = "10%", DataType = typeof(decimal), DefaultValue = 0 });
 			view.Fields.Add(new ViewFieldInfo() { Caption = "Unit Cost", TableName = "EstimateMaterial", FieldName = "UnitCost", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Total", TableName = "EstimateMaterial", FieldName = "Total", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Total", TableName = "EstimateMaterial", FieldName = "Total", Width = "15%", DataType = typeof(decimal), IsSqlComputed = true });
+
+			// Notice that we alias the Material.Name field to match the AliasedFieldName in the LookupInfo for MaterialID, which is calling the Material view and where Material.Name is also aliased to MaterialName.
+			// TODO: There might be a required coupling between the aliased names that should exist.  Check this out at some point.
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Material", FieldName = "Name", Alias = "MaterialName", Visible = false, DataType = typeof(string) });
 
 			return view;
 		}

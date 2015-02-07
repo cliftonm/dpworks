@@ -16,6 +16,9 @@ namespace dpworkswebsite.Models
 		public string ViewName { get; set; }
 		public string IdFieldName { get; set; }
 		public string ValueFieldName { get; set; }
+		public string AliasedFieldName { get; set; }			// The alias is the master table.
+
+		public string Alias { get { return (AliasedFieldName == null ? ValueFieldName : AliasedFieldName); } }
 		
 		// The URL for populating the lookup information.
 		public string Url { get; set; }
@@ -64,6 +67,11 @@ namespace dpworkswebsite.Models
 		/// If the value must be computed in realtime, use this property.
 		/// </summary>
 		public Func<Session, object> ComputedValue { get; set; }
+
+		/// <summary>
+		/// True if the field value is computed by the database.  This prevents the field from ever being written to.
+		/// </summary>
+		public bool IsSqlComputed { get; set; }
 
 		public ViewFieldInfo()
 		{

@@ -75,6 +75,7 @@
     <Content Include="Website\Fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Website\Pages\about.html" />
     <Content Include="Website\Pages\contact.html" />
+    <Content Include="Website\Pages\equipment.html" />
     <Content Include="Website\Pages\ErrorPages\expiredSession.html" />
     <Content Include="Website\Pages\ErrorPages\fileNotFound.html" />
     <Content Include="Website\Pages\ErrorPages\notAuthorized.html" />

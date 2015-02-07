@@ -1,7 +1,33 @@
 ﻿@TableEditor@
 <body>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var rowIndex = -1;
+            var selectedEstimateId;
+
+            $("#editEstimate").jqxButton({ width: '150' });
+            $("#editEstimate").jqxButton({ disabled: true });
+            
+            // TODO: When adding a row, the selectedEstimatedId is undefined.  Need to set this based on the response from the server!
+
+            $("#estimateTable").on('rowSelect', function (event) {
+                rowindex = event.args.index;
+                selectedEstimateId = event.args.row.Id;
+                // alert(rowindex + " " + selectedEstimateId);
+                $("#editEstimate").jqxButton({ disabled: false });
+            });
+
+            $("#editEstimate").click(function () {
+                window.location.href = "/editEstimate?id=" + selectedEstimateId;
+            });
+        });
+    </script>
+
     <div>
         <h1>Estimates</h1>
     </div>
     <div id="estimateTable"></div>
+    <div style="margin-top:20px">
+        <input type="button" value="Edit Line Items" id='editEstimate' />        
+    </div>
 </body>

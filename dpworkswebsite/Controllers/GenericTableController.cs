@@ -61,8 +61,8 @@ namespace dpworkswebsite.Controllers
 				// We need to convert this to the non-aliased master table FK ID and lookup the value from the FK table given the name.
 				// ANNOYINGLY, THIS MEANS THAT THE NAME MUST ALSO BE UNIQUE!  This should be acceptable, if not even good practice, but it's still an annoying constraint.
 				DbService db = new Services.DbService();
-				FixupLookups(db, kvParams);
 				kvParams = Utils.FixAnnoyingDataIssues(kvParams);
+				FixupLookups(db, kvParams);
 				db.Update(View, kvParams);
 				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
 			}
@@ -144,12 +144,13 @@ namespace dpworkswebsite.Controllers
 					}
 					else
 					{
+						// Since this field is an FK, we set up the jqxDataTable to display a dropdown with the data from the lookup table for this field.
 						++lookupCounter;
 						List<string> lookupFields = new List<string>();
 
 						// Let app handle exception if the view isn't registered.
 						ViewInfo lookupViewInfo = ViewInfo.RegisteredViews[f.LookupInfo.ViewName];
-						lookupViewInfo.Fields.ForEach(lvfi => lookupFields.Add(("name: " + lvfi.FieldName.SingleQuote() + ", type: " + lvfi.GetJavascriptType().SingleQuote()).CurlyBraces()));
+						lookupViewInfo.Fields.ForEach(lvfi => lookupFields.Add(("name: " + lvfi.Alias.SingleQuote() + ", type: " + lvfi.GetJavascriptType().SingleQuote()).CurlyBraces()));
 						string lookupFieldStr = String.Join(",", lookupFields);
 
 						string lookup = @"
@@ -170,9 +171,9 @@ namespace dpworkswebsite.Controllers
 						columns.Add("{ text: " + f.Caption.SingleQuote() +
 							", columntype: 'template'" +
 							", dataField: " + f.Alias.SingleQuote() +
-							", displayField: " + f.LookupInfo.ValueFieldName.SingleQuote() +	// This is the field in the FK table that is joined to the master table, and is a kludge because of how jqxDataTable with a jqxDropDownList works.
+							", displayField: " + f.LookupInfo.Alias.SingleQuote() +	// This is the field in the FK table that is joined to the master table, and is a kludge because of how jqxDataTable with a jqxDropDownList works.
 							", width: " + f.Width.SingleQuote() +
-							", createEditor: function(row, cellvalue, editor, cellText, width, height) {editor.jqxDropDownList({source: daLookup" + lookupCounter + ", displayMember: " + f.LookupInfo.ValueFieldName.SingleQuote() + ", valueMember: " + f.LookupInfo.ValueFieldName.SingleQuote() + ", width: width, height: height});},\r\n" +
+							", createEditor: function(row, cellvalue, editor, cellText, width, height) {editor.jqxDropDownList({source: daLookup" + lookupCounter + ", displayMember: " + f.LookupInfo.Alias.SingleQuote() + ", valueMember: " + f.LookupInfo.Alias.SingleQuote() + ", width: width, height: height});},\r\n" +
 							"initEditor: function (row, cellvalue, editor, celltext, width, height) {editor.jqxDropDownList({ width: width, height: height });editor.val(cellvalue);},\r\n" +
 							"getEditorValue: function (row, cellvalue, editor) {return editor.val();}}\r\n");
 					}
@@ -215,10 +216,10 @@ namespace dpworkswebsite.Controllers
 				{
 					object val;
 
-					if (kvParams.TryGetValue(f.LookupInfo.ValueFieldName, out val))
+					if (kvParams.TryGetValue(f.LookupInfo.Alias, out val))
 					{
 						// Remove the *value field* name
-						kvParams.Remove(f.LookupInfo.ValueFieldName);
+						kvParams.Remove(f.LookupInfo.Alias);
 						// Replace with the non-aliased *FK field* name.
 						// TODO: This doesn't handle multiple columns referencing the same FK table.
 						// Now, lookup the value in the FK table.  Sigh, this requires a database query.  If the jqxDataTable / jqxDropDownList worked correctly with ID's, this wouldn't be necessary!
