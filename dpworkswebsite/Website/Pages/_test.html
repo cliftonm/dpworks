@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Test</title>
+    <link type="text/css" rel="stylesheet" href="/Scripts/jqwidgets/styles/jqx.base.css" />
+
+    <script type="text/javascript" src="/Scripts/jquery-1.11.2.min.js"></script>
+
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdata.js"></script> 
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxscrollbar.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdatatable.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxlistbox.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxdropdownlist.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxcheckbox.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="/Scripts/jqwidgets/jqxslider.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var data = [
+                { Id: 4, Abbr: 'lbs', Name: 'pounds', UnitCost: 5 },
+                { Id: 5, Abbr: 'each', Name: 'Each', UnitCost: 6 },
+                { Id: 6, Abbr: 'ft', Name: 'Feet', UnitCost: 7 },
+                { Id: 12, Abbr: 'in', Name: 'Inches', UnitCost: 8 },
+            ];
+
+            var source =
+             {
+                 localData: data,
+                 dataType: "array",
+                 updateRow: function (rowId, rowData, commit) {commit(true);},
+                 dataFields:
+                 [
+                     { name: 'Id', type: 'number' },
+                     { name: 'Abbr', type: 'string' },
+                     { name: 'Name', type: 'string' },
+                     { name: 'UnitCost', type: 'number' },
+                 ]
+             };
+
+            var dataAdapter = new $.jqx.dataAdapter(source);
+
+            var getEditorDataAdapter = function (datafield) {
+                var source =
+                 {
+                     localData: data,
+                     dataType: "array",
+                     dataFields:
+                     [
+                         { name: 'Id', type: 'number' },
+                         { name: 'Abbr', type: 'string' },
+                         { name: 'Name', type: 'string' },
+                         { name: 'UnitCost', type: 'number' },
+                     ]
+                 };
+                var dataAdapter = new $.jqx.dataAdapter(source, { uniqueDataFields: [datafield] });
+                return dataAdapter;
+            };
+
+            $('#materialTable').jqxDataTable(
+            {
+                width: 850,
+                source: dataAdapter,
+                pageable: true,
+                pagerButtonsCount: 10,
+                editable: true,
+                autoRowHeight: false,
+                columns: [
+                    {
+                        text: 'Unit', columnType: 'template', dataField: 'Name', width: '20%',
+                        createEditor: function (row, cellvalue, editor, cellText, width, height) {
+                            editor.jqxDropDownList({
+                                source: getEditorDataAdapter('Name'),
+                                displayMember: 'Name',
+                                valueMember: 'Name',
+                                width: width,
+                                height: height
+                            });
+                        },
+                        initEditor: function (row, cellvalue, editor, celltext, width, height) {
+                            editor.jqxDropDownList({ width: width, height: height });
+                            editor.val(cellvalue);
+                        },
+                        getEditorValue: function (row, cellvalue, editor) {
+                            return editor.val();
+                        }
+                    },
+                    { text: 'Cost', dataField: 'UnitCost', width: '20%' }
+                ]
+            });
+
+
+            $("#units").jqxDropDownList({
+                source: getEditorDataAdapter('Id'),
+                displayMember: "Name", valueMember: "Id", width: "200px", height: "25px"
+            });
+
+        });
+
+    </script>
+</head>
+    <body>
+        <div>
+            <h1>Materials</h1>
+        </div>
+        <div id="materialTable"></div> 
+        <div id="units"></div>
+    </body>
+</html>

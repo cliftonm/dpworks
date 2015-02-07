@@ -75,7 +75,7 @@
     color: inherit;
 }
 .jqx-widget-content-windowsphone{font-size: 16px; font-family: 'Segoe WP', 'segoe ui', arial, sans-serif; border-color: #2F2F2F; color: #ffffff; background-color: #000;}
-input[type=text].jqx-input-windowsphone, input[type=password].jqx-input-windowsphone{
+input[type=text].jqx-input-windowsphone, input[type=password].jqx-input-windowsphone, .jqx-input-group-addon-windowsphone{
    font-size: 16px; 
    font-family: 'Segoe WP', 'segoe ui', arial, sans-serif;
    background: #BEBEBE;
@@ -473,3 +473,5 @@ border-color:#008a00; color: #fff; background-color:#008a00;
 .jqx-editor-toolbar-icon-windowsphone {
     background: url('images/html_editor_white.png') no-repeat;
 }
+.jqx-file-upload-file-name-windowsphone{padding:3px;}
+.jqx-file-upload-file-row-windowsphone{ height: 40px;}

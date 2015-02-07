@@ -41,6 +41,8 @@ namespace dpworkswebsite.Services
 
 	public class DbService
 	{
+		protected List<string> tableAliases = Enumerable.Range('a', 26).Select(x => ((char)x).ToString()).ToList();
+
 		protected string connectionString;
 
 		public DbService()
@@ -60,9 +62,24 @@ namespace dpworkswebsite.Services
 
 			// Build the query:
 			StringBuilder sb = new StringBuilder("select ");
-			sb.Append(String.Join(", ", view.Fields.Select(f => f.SqlFormat== null ? f.FieldName : f.SqlFormat + " as " + f.FieldName)));
+			sb.Append(String.Join(", ", view.Fields.Select(f => tableAliases[view.Tables.IndexOf(f.TableName)] + "." + (f.SqlFormat== null ? f.FieldName + " as " + f.Alias : f.SqlFormat + " as " + f.Alias))));
 			sb.Append(" from ");
-			sb.Append(view.TableName.Brackets());
+			sb.Append(view.Tables[0].Brackets() + tableAliases[0].Spaced());
+
+			// Left join remaining tables -- we ignore the "from" table.
+			// TODO: At some point, we should let the programmer define the join type.
+			// TODO: We need a much more sophisticated table-join walker than what we implement here.  I've already written this code elsewhere, might see if it can be ported.
+			view.Tables.Skip(1).ForEachWithIndex((tname, idx) =>
+			{
+				sb.Append("left join" + tname.Brackets().Spaced() + tableAliases[idx+1] + " on ");
+				// Right now, we assume strictly joining with the "from" table, and we always assume "Id" as the PK field.  We need access to the full ViewInfo schema collection to do this right.
+				sb.Append(tableAliases[idx+1]+".Id = a.");
+				// Find the field in the view that joins to this table.
+				// TODO: This does not handle joining twice to the same table using separate FK fields.
+				ViewFieldInfo vfiMaster = view.Fields.Where(vfi => vfi.IsFK && vfi.LookupInfo.ViewName == tname).Single();
+				string masterJoinedFieldName = vfiMaster.FieldName;
+				sb.Append(masterJoinedFieldName + " ");
+			});
 			
 			// Append any where clause
 			whereClause.IfNotNull(w => sb.Append(whereClause.Spaced()));
@@ -70,6 +87,7 @@ namespace dpworkswebsite.Services
 
 			// Get the data.
 			cmd.CommandText = sb.ToString();
+			Console.WriteLine(sb.ToString());
 			SqlDataAdapter da = new SqlDataAdapter((SqlCommand)cmd);
 			da.Fill(dt);
 			CloseConnection(conn);
@@ -153,6 +171,8 @@ namespace dpworkswebsite.Services
 			CloseConnection(conn);
 		}
 
+		// Deprecated.
+		/*
 		public decimal InsertOrUpdate(string tableName, Dictionary<string, object> parms, string idField = "ID")
 		{
 			decimal ret = -1;
@@ -171,6 +191,21 @@ namespace dpworkswebsite.Services
 			{
 				Update(tableName, parms);
 			}
+
+			return ret;
+		}
+		*/
+
+		/// <summary>
+		/// Insert records in all tables in the view.
+		/// </summary>
+		public decimal Insert(ViewInfo view, Dictionary<string, object> parms)
+		{
+			// TODO: Implement multi-table insert.  This needs to be smart, preventing joined table inserts when they're just FK helpers.  Needs to be configurable in the ViewInfo for the table collection.
+			// TODO: If implementing true multi-table inserts, need to figure out how to return the ID's of all affected table records.
+			string tableName = view.Tables[0];
+			Dictionary<string, object> dealiasedParms = GetFieldNames(view, tableName, parms);
+			decimal ret = Insert(tableName, dealiasedParms);
 
 			return ret;
 		}
@@ -208,6 +243,17 @@ namespace dpworkswebsite.Services
 			CloseConnection(conn);
 
 			return id;
+		}
+
+		/// <summary>
+		/// Handles updating a multi-table view.  
+		/// </summary>
+		public void Update(ViewInfo view, Dictionary<string, object> parms, string idField = "ID")
+		{
+			// TODO: Only the master table is currently updated.  Need full implementation to update all tables in the view.
+			string tableName = view.Tables[0];
+			parms = GetFieldNames(view, tableName, parms);
+			Update(tableName, parms, idField);
 		}
 
 		/// <summary>
@@ -251,6 +297,15 @@ namespace dpworkswebsite.Services
 			// Execute:
 			cmd.ExecuteNonQuery();
 			CloseConnection(conn);
+		}
+
+		public void Delete(ViewInfo view, Dictionary<string, object> parms, string idField = "ID")
+		{
+			// TODO: Only the master table record is currently deleted.  Need full implementation to delete records across all tables in the view.
+			// However, this also needs to be smart -- the view needs to specify whether joined tables are read-only.
+			string tableName = view.Tables[0];
+			parms = GetFieldNames(view, tableName, parms);
+			Delete(tableName, parms, idField);
 		}
 
 		/// <summary>
@@ -351,6 +406,25 @@ namespace dpworkswebsite.Services
 			KeyValuePair<string, object> pkKvp = parms.Where(kvp => kvp.Key.ToLower() == pkField).Single();
 
 			return pkKvp;
+		}
+
+		/// <summary>
+		/// Returns a collection of field-value pairs for the specified table.  The field names are non-aliased.
+		/// </summary>
+		protected Dictionary<string, object> GetFieldNames(ViewInfo view, string tableName, Dictionary<string, object> parms)
+		{
+			Dictionary<string, object> ret = new Dictionary<string, object>();
+
+			// For each field in the view...
+			view.Fields.Where(f => f.TableName == tableName).ForEach(vfi =>
+				{
+					// If the alias in the incoming params matches a view in the specified table...
+					// (We have to deal with lowercase because the JSON response might be all in lowercase)
+					// Then we add that field (un-aliased) and its value from the params to the returned collection.
+					parms.SingleOrDefault(kvp => kvp.Key.ToLower() == vfi.Alias.ToLower()).IfTrue(kvp => !String.IsNullOrEmpty(kvp.Key), kvp2=> ret[vfi.FieldName] = kvp2.Value);
+				});
+
+			return ret;
 		}
 	}
 }

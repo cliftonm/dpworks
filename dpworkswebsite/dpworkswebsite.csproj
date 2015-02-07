@@ -95,6 +95,7 @@
     <Content Include="Website\Pages\login.html" />
     <Content Include="Website\Pages\_menubar.html" />
     <Content Include="Website\Pages\_tableEditor.html" />
+    <Content Include="Website\Pages\_test.html" />
     <Content Include="Website\Scripts\bootstrap.js" />
     <Content Include="Website\Scripts\bootstrap.min.js" />
     <Content Include="Website\Scripts\csi.js" />

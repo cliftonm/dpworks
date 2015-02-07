@@ -355,7 +355,7 @@
     padding-bottom: 2px !important;
 }
 .jqx-widget .jqx-grid-cell, .jqx-widget .jqx-grid-column-header, .jqx-widget .jqx-grid-group-cell {border-color: #ccc; border-color: rgba(0,0,0,0.2);}
-.jqx-combobox-content-blackberry, .jqx-input-blackberry {
+.jqx-combobox-content-blackberry, .jqx-input-blackberry, .jqx-input-group-addon-blackberry {
     border-color: #cccccc;
     border-color: rgba(0,0,0,0.2);
     color: #555555;
@@ -630,4 +630,8 @@ input[type=text].jqx-input-blackberry, input[type=password].jqx-input-blackberry
  .jqx-icon-calendar-pressed-blackberry {
     background-image: url('images/icon-calendar-white.png');
 }
-
+.jqx-file-upload-blackberry .jqx-icon-arrow-up-blackberry {
+  background-image: url('images/icon-up-white.png');
+}
+.jqx-file-upload-file-name-blackberry{padding:3px;}
+.jqx-file-upload-file-row-blackberry{ height: 40px;}

@@ -16,20 +16,6 @@
         $(document).ready(function () {
             // @InitRecordInfo@
 
-            var unitList =
-            {
-                datatype: "json",
-                datafields: [
-                    { name: 'Id', type: 'number' },
-                    { name: 'Abbr', type: 'string' },
-                    { name: 'Name', type: 'string' }
-                ],
-                url: "/unitlist",
-                async: false
-            };
-
-            var daUnitList = new $.jqx.dataAdapter(unitList, { uniqueDataFields: ["Id"] });
-
             $(tableNameID).on('rowSelect', function (event) {
                 rowindex = event.args.index;
 
@@ -71,7 +57,12 @@
                                     // This has to happen after the commit, so that it's row 0.
                                     // Sadly, setting the Id field does not work!!!  Stupid jqDataTable control again.
                                     var elements = {};      // We have to create the k-v array "manually" because we can't say {addRecordInitField : addRecordInitValue} 
-                                    elements[addRecordInitField] = addRecordInitValue;
+
+                                    // elements[addRecordInitField] = addRecordInitValue;
+                                    $.each(addRecordInitializers, function (key, value) {
+                                        elements[key] = value;
+                                    });
+
                                     elements["Id"] = data;          // This doesn't actually do what I want it to do.
                                     $(tableNameID).jqxDataTable('updateRow', 0, elements);
                                     // And, the update above takes the widget out of edit mode, so we have to put it back into edit mode.
@@ -165,7 +156,7 @@
                 sortable: true,
                 columnsResize: true,
                 theme: 'office',
-                altrows: true,
+                altRows: true,
                 editable: true,
                 pagerButtonsCount: 8,
                 selectionMode: "singleRow",
@@ -295,26 +286,29 @@
                 // Must be defined last.
                 columns: columns
 
+
             });
 
         });
 
         // For debugging the editMaterials page and why the dropdown box isn't working, use this for the columns definition:
         /*
-        [{ text: 'Name', dataField: 'Name', width: '15%'},
-                        { text: 'Unit', colummntype: 'template', dataField: 'UnitId', width: '20%', 
-                            createEditor: function(row, cellvalue, editor, cellText, width, height) {
-                                editor.jqxDropDownList({ source: daUnitList, displayMember: 'Abbr', valueMember: 'Id', width: width, height: height });
-                            },
-                            initEditor: function (row, cellvalue, editor, celltext, width, height)  {
-                                editor.jqxDropDownList({ width: width, height: height }); editor.val(cellvalue);
-                                editor.val(cellvalue);
-                            },
-                            getEditorValue: function (row, cellvalue, editor) {
-                                return editor.val();
-                            }
-                        },
-                        { text: 'Cost', dataField: 'UnitCost', width: '20%'}]
-                        */
-    </script>
+    [{ text: 'Name', dataField: 'MaterialName', width: '15%' },
+        {
+            text: 'Unit', columntype: 'template', dataField: 'UnitId', displayField: 'Abbr', width: '20%',
+            createEditor: function (row, cellvalue, editor, cellText, width, height) {
+                editor.jqxDropDownList({ source: daUnitList, displayMember: 'Abbr', valueMember: 'Abbr', width: width, height: height });
+            },
+            initEditor: function (row, cellvalue, editor, celltext, width, height) {
+                editor.jqxDropDownList({ width: width, height: height });
+                alert("cellvalue = " + cellvalue + "   celltext = " + celltext);
+                editor.val(cellvalue);
+            },
+            getEditorValue: function (row, cellvalue, editor) {
+                return editor.val();
+            }
+        },
+        { text: 'Cost', dataField: 'MaterialUnitCost', width: '20%' }]
+        */
+</script>
 </head>

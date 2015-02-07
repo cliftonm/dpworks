@@ -66,6 +66,11 @@ namespace dpworkswebsite
 			GenericTableController estimates = InitializeEstimateController();
 			GenericTableController estimateMaterials = InitializeEstimateMaterialsController();
 
+			// These views are used as lookups and must be registered so we can find the view when creating the data source in Javascript.
+			sites.View.Register();
+			units.View.Register();
+			material.View.Register();
+
 			Server.AddRoute(new Route() { Verb = Router.POST, Path = "/login", Handler = new AnonymousRouteHandler(LoginController.ValidateClient) });
 			Server.AddRoute(new Route() { Verb = Router.GET, Path = "/logout", Handler = new AnonymousRouteHandler(LoginController.Logout) });
 
@@ -97,7 +102,7 @@ namespace dpworkswebsite
 			AddRoutes("/estimates", "estimate", estimates);
 
 			Server.Start(websitePath);
-			System.Diagnostics.Process.Start("http://localhost/estimates");
+			System.Diagnostics.Process.Start("http://localhost/materials");
 			Console.ReadLine();
 		}
 
@@ -207,11 +212,10 @@ namespace dpworkswebsite
 		{
 			GenericTableController controller = new GenericTableController()
 			{
-				TableName = "#siteTable",
+				DataTableName = "#siteTable",
 				CallbackObjectName = "site",
-				InitField = "Name",
-				InitValue = "new site",
 				View = InitializeSiteView(),
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where Id > -1" },
 			};
 
 			return controller;
@@ -219,15 +223,15 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeSiteView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "SiteProfile" };
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType=typeof(decimal), IsPK=true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Name", Caption = "Name", Width = "15%", DataType=typeof(string), DefaultValue=""});
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Municipality", FieldName = "Municipality", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "State", FieldName = "State", Width = "5%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Name", FieldName = "ContactName", Width = "20%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Phone", FieldName = "ContactPhone", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Email", FieldName = "ContactEmail", Width = "30%", DataType = typeof(string), DefaultValue = "" });
-
+			ViewInfo view = new ViewInfo() { Name="SiteProfile", Tables = new List<string> () {"SiteProfile"} };
+			view.Fields.Add(new ViewFieldInfo() { TableName = "SiteProfile", FieldName = "Id", Visible = false, DataType=typeof(decimal), IsPK=true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "SiteProfile", FieldName = "Name", Caption = "Name", Width = "15%", DataType = typeof(string), DefaultValue = "new site" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Municipality", TableName = "SiteProfile", FieldName = "Municipality", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "State", TableName = "SiteProfile", FieldName = "State", Width = "5%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Name", TableName = "SiteProfile", FieldName = "ContactName", Width = "20%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Phone", TableName = "SiteProfile", FieldName = "ContactPhone", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Contact Email", TableName = "SiteProfile", FieldName = "ContactEmail", Width = "30%", DataType = typeof(string), DefaultValue = "" });
+			
 			return view;
 		}
 
@@ -237,10 +241,8 @@ namespace dpworkswebsite
 		{
 			GenericTableController controller = new GenericTableController()
 			{
-				TableName = "#unitTable",
+				DataTableName = "#unitTable",
 				CallbackObjectName = "unit",
-				InitField = "Name",
-				InitValue = "new unit",
 				View = InitializeUnitsView(),
 				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = GetSiteIdAsParam(session) },
 				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
@@ -251,12 +253,12 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeUnitsView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "Unit" };
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Abbreviation", FieldName = "Abbr", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", FieldName = "Name", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Description", FieldName = "Description", Width = "20%", DataType = typeof(string), DefaultValue = "" });
+			ViewInfo view = new ViewInfo() { Name="Unit", Tables = {"Unit"} };
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Unit", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Unit", FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Abbreviation", TableName = "Unit", FieldName = "Abbr", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", TableName = "Unit", FieldName = "Name", Width = "15%", DataType = typeof(string), DefaultValue = "new unit" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Description", TableName = "Unit", FieldName = "Description", Width = "20%", DataType = typeof(string), DefaultValue = "" });
 
 			return view;
 		}
@@ -267,12 +269,11 @@ namespace dpworkswebsite
 		{
 			GenericTableController controller = new GenericTableController()
 			{
-				TableName = "#materialTable",
+				DataTableName = "#materialTable",
 				CallbackObjectName = "material",
-				InitField = "Name",
-				InitValue = "new item",
 				View = InitializeMaterialView(),
-				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
+				// TODO: The hardcoded "a." in the where clause needs to be eliminated.  Figure out the best way to do this.
+				WhereClause = (Session session) => new SqlFragment() { Sql = "where a.SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
 				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
 			};
 
@@ -281,12 +282,31 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeMaterialView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "Material" };
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", FieldName = "Name", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Unit", FieldName = "UnitId", Width = "20%", DataType = typeof(decimal), LookupInfo = new LookupInfo() { TableName = "Unit", IdFieldName = "Id", ValueFieldName = "Abbr" }, DefaultValue=-1 });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Cost", FieldName = "UnitCost", Width = "20%", DataType = typeof(decimal), DefaultValue=0 });
+			ViewInfo view = new ViewInfo() { Name="Material", Tables = { "Material", "Unit" } };
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Material", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Material", FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Name", TableName = "Material", FieldName = "Name", Width = "15%", DataType = typeof(string), DefaultValue = "new item", Alias="MaterialName" });
+			
+			view.Fields.Add(new ViewFieldInfo() 
+			{ 
+				Caption = "Unit", 
+				TableName = "Material", 
+				FieldName = "UnitId", 
+				Width = "20%", 
+				DataType = typeof(decimal), 
+				Alias = "MaterialUnitId", 
+				LookupInfo = new LookupInfo() 
+				{ 
+					ViewName = "Unit", 
+					IdFieldName = "Id", 
+					ValueFieldName = "Abbr",
+					Url="/unitList",
+				}, 
+				DefaultValue = -1 
+			});
+
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Cost", TableName = "Material", FieldName = "UnitCost", Width = "20%", DataType = typeof(decimal), DefaultValue = 0, Alias="MaterialUnitCost" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Abbr", TableName = "Unit", FieldName = "Abbr", Visible = false, DataType = typeof(string) });
 
 			return view;
 		}
@@ -297,10 +317,8 @@ namespace dpworkswebsite
 		{
 			GenericTableController controller = new GenericTableController()
 			{
-				TableName = "#laborRatesTable",
+				DataTableName = "#laborRatesTable",
 				CallbackObjectName = "laborrate",
-				InitField = "Position",
-				InitValue = "new position",
 				View = InitializeLaborRatesView(),
 				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
 				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
@@ -311,11 +329,11 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeLaborRatesView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "LaborRate" };
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Position", FieldName = "Position", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Hourly Rate", FieldName = "HourlyRate", Width = "20%", DataType = typeof(decimal), DefaultValue=0 });
+			ViewInfo view = new ViewInfo() { Name="LaborRate", Tables = {"LaborRate"} };
+			view.Fields.Add(new ViewFieldInfo() { TableName = "LaborRate", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "LaborRate", FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Position", TableName = "LaborRate", FieldName = "Position", Width = "15%", DataType = typeof(string), DefaultValue = "new position" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Hourly Rate", TableName = "LaborRate", FieldName = "HourlyRate", Width = "20%", DataType = typeof(decimal), DefaultValue = 0 });
 
 			return view;
 		}
@@ -326,10 +344,8 @@ namespace dpworkswebsite
 		{
 			GenericTableController controller = new GenericTableController()
 			{
-				TableName = "#userTable",
+				DataTableName = "#userTable",
 				CallbackObjectName = "user",
-				InitField = "FirstName",
-				InitValue = "new user",
 				View = InitializeUsersView(),
 				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
 				AdditionalInsertParams = (Session session) => GetSiteIdAsParam(session),
@@ -340,32 +356,32 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeUsersView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "User" };
+			ViewInfo view = new ViewInfo() { Name="User", Tables = {"User"} };
 
 			// Hidden fields.
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "RegistrationToken", Visible = false, DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Activated", Visible = false, DataType = typeof(bool), DefaultValue = false });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "PasswordHash", Visible = false, DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "User", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "User", FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "User", FieldName = "RegistrationToken", Visible = false, DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "User", FieldName = "Activated", Visible = false, DataType = typeof(bool), DefaultValue = false });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "User", FieldName = "PasswordHash", Visible = false, DataType = typeof(string), DefaultValue = "" });
 
-			view.Fields.Add(new ViewFieldInfo() { Caption = "First Name", FieldName = "FirstName", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Last Name", FieldName = "LastName", Width = "15%", DataType = typeof(string), DefaultValue = "" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Email", FieldName = "Email", Width = "25%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "First Name", TableName = "User", FieldName = "FirstName", Width = "15%", DataType = typeof(string), DefaultValue = "new user" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Last Name", TableName = "User", FieldName = "LastName", Width = "15%", DataType = typeof(string), DefaultValue = "" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Email", TableName = "User", FieldName = "Email", Width = "25%", DataType = typeof(string), DefaultValue = "" });
 
 			return view;
 		}
 
 		// ESTIMATE
 
+		// TODO: The estimated date must be populated with NOW (not the now of initializing this structure, but the now of when a new estimate is added.)
+
 		private static GenericTableController InitializeEstimateController()
 		{
 			GenericTableController controller = new GenericTableController()
 			{
-				TableName = "#estimateTable",
+				DataTableName = "#estimateTable",
 				CallbackObjectName = "estimate",
-				InitField = "EstimateDate",
-				InitValue = DateTime.Now.ToString("MM/dd/yyyy"),
 				View = InitializeEstimateView(),
 				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @SiteId", Parameters = new Dictionary<string, object>() { { "@SiteId", session.SiteID() } } },
 				AdditionalInsertParams = (Session session) => new Dictionary<string, object>() 
@@ -380,13 +396,13 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeEstimateView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "Estimate" };
+			ViewInfo view = new ViewInfo() { Name="Estimate", Tables = {"Estimate"} };
 
 			// Hidden fields.
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Date", FieldName = "EstimateDate", DataType = typeof(DateTime), Width = "20%", SqlFormat = "CONVERT(VARCHAR(10), EstimateDate, 101)" });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Road", FieldName = "Road", DataType = typeof(string), Width="80%", DefaultValue="" });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Estimate", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "Estimate", FieldName = "SiteId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Date", TableName = "Estimate", FieldName = "EstimateDate", DataType = typeof(DateTime), Width = "20%", SqlFormat = "CONVERT(VARCHAR(10), EstimateDate, 101)" });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Road", TableName = "Estimate", FieldName = "Road", DataType = typeof(string), Width = "80%", DefaultValue = "" });
 
 			return view;
 		}
@@ -397,10 +413,8 @@ namespace dpworkswebsite
 		{
 			GenericTableController controller = new GenericTableController()
 			{
-				TableName = "#materialEstimateTable",
+				DataTableName = "#materialEstimateTable",
 				CallbackObjectName = "materialEstimate",
-				InitField = "Quantity",
-				InitValue = "0",
 				View = InitializeEstimateMaterialsView(),
 				WhereClause = (Session session) => new SqlFragment() { Sql = "where SiteId = @EstimateId", Parameters = new Dictionary<string, object>() { { "@EstimateId", session.EstimateID() } } },
 				AdditionalInsertParams = (Session session) => GetEstimateIdAsParam(session),
@@ -411,13 +425,13 @@ namespace dpworkswebsite
 
 		private static ViewInfo InitializeEstimateMaterialsView()
 		{
-			ViewInfo view = new ViewInfo() { TableName = "EstimateMaterial" };
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "EstimateId", Visible = false, DataType = typeof(decimal) });
-			view.Fields.Add(new ViewFieldInfo() { FieldName = "MaterialId", Width="25%", DataType = typeof(decimal), LookupInfo = new LookupInfo() { TableName = "Materials", IdFieldName = "Id", ValueFieldName = "Name" }, DefaultValue=-1 });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Quantity", FieldName = "Quantity", Width = "10%", DataType = typeof(decimal), DefaultValue = 0 });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Unit Cost", FieldName = "UnitCost", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
-			view.Fields.Add(new ViewFieldInfo() { Caption = "Total", FieldName = "Total", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
+			ViewInfo view = new ViewInfo() { Name="EstimateMaterial", Tables = {"EstimateMaterial"} };
+			view.Fields.Add(new ViewFieldInfo() { TableName = "EstimateMaterial", FieldName = "Id", Visible = false, DataType = typeof(decimal), IsPK = true });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "EstimateMaterial", FieldName = "EstimateId", Visible = false, DataType = typeof(decimal) });
+			view.Fields.Add(new ViewFieldInfo() { TableName = "EstimateMaterial", FieldName = "MaterialId", Width = "25%", DataType = typeof(decimal), LookupInfo = new LookupInfo() { ViewName = "Materials", IdFieldName = "Id", ValueFieldName = "Name" }, DefaultValue = -1 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Quantity", TableName = "EstimateMaterial", FieldName = "Quantity", Width = "10%", DataType = typeof(decimal), DefaultValue = 0 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Unit Cost", TableName = "EstimateMaterial", FieldName = "UnitCost", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
+			view.Fields.Add(new ViewFieldInfo() { Caption = "Total", TableName = "EstimateMaterial", FieldName = "Total", Width = "15%", DataType = typeof(decimal), DefaultValue = 0 });
 
 			return view;
 		}

@@ -74,7 +74,7 @@
     font-family: Roboto,HelveticaNeue,sans-serif;
     color: inherit;
 }
-input[type=text].jqx-input-android, input[type=password].jqx-input-android{
+input[type=text].jqx-input-android, input[type=password].jqx-input-android, .jqx-input-group-addon-android{
    font-size: 16px; 
    font-family: Roboto,HelveticaNeue,sans-serif;
    border-color: #636466;
@@ -498,3 +498,8 @@ input[type=text].jqx-input-android, input[type=password].jqx-input-android{
 .jqx-editor-toolbar-icon-android {
     background: url('images/html_editor_white.png') no-repeat;
 }
+.jqx-menu-minimized-button-android {
+   background-image: url('images/icon-menu-minimized-white.png');
+}
+.jqx-file-upload-file-name-android{padding:3px;}
+.jqx-file-upload-file-row-android{ height: 40px;}

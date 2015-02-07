@@ -20,9 +20,11 @@ namespace dpworkswebsite.Controllers
 {
 	public class GenericTableController
 	{
-		public string TableName { get; set; }
-		public string InitField { get; set; }
-		public string InitValue { get; set; }
+		/// <summary>
+		/// This is the name of the jqWidget data table control, having nothing to do with back-end table names.
+		/// </summary>
+		public string DataTableName { get; set; }
+
 		public ViewInfo View { get; set; }
 		public string CallbackObjectName { get; set; }
 		public Func<Session, SqlFragment> WhereClause { get; set; }
@@ -54,14 +56,20 @@ namespace dpworkswebsite.Controllers
 
 			try
 			{
-				kvParams = Utils.FixAnnoyingDataIssues(kvParams);
+				// Because of how jqxDataTable works:
+				// In a data table with a DropDownList, the selected *display name* associated with the *lookup field name* is returned.
+				// We need to convert this to the non-aliased master table FK ID and lookup the value from the FK table given the name.
+				// ANNOYINGLY, THIS MEANS THAT THE NAME MUST ALSO BE UNIQUE!  This should be acceptable, if not even good practice, but it's still an annoying constraint.
 				DbService db = new Services.DbService();
-				db.Update(View.TableName, kvParams);
+				FixupLookups(db, kvParams);
+				kvParams = Utils.FixAnnoyingDataIssues(kvParams);
+				db.Update(View, kvParams);
 				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
 			}
 			catch (Exception ex)
 			{
-				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("Error: " + ex.Message) };
+				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("Error") };
+				Console.WriteLine(ex.Message);
 			}
 
 			return resp;
@@ -74,7 +82,7 @@ namespace dpworkswebsite.Controllers
 			// TODO: This is very kludgy because of the way jqxDataTable works: it
 			// wants us to add the record with no data, but we have non-nullable columns!
 			// As a result, we let application define the default values for an "empty record insert."
-			View.Fields.Where(f => !f.IsPK && !f.IsNullable && f.DefaultValue != null).ForEach(f => kvParams[f.FieldName] = f.DefaultValue);
+			View.Fields.Where(f => !f.IsPK && !f.IsNullable && f.DefaultValue != null).ForEach(f => kvParams[f.Alias] = f.DefaultValue);
 			// Replace any existing not nullable field with application-specific defined parameters.
 			// Note that this is a function call, which allows for realtime value updates, as opposed to the default value above, 
 			// which is a one-time assignment on initialization.
@@ -84,12 +92,13 @@ namespace dpworkswebsite.Controllers
 			{
 				kvParams = Utils.FixAnnoyingDataIssues(kvParams);
 				DbService db = new Services.DbService();
-				decimal id = db.Insert(View.TableName, kvParams);
+				decimal id = db.Insert(View, kvParams);
 				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes(id.ToString()) };
 			}
 			catch (Exception ex)
 			{
-				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("Error: " + ex.Message) };
+				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("Error") };
+				Console.WriteLine(ex.Message);
 			}
 
 			return resp;
@@ -103,56 +112,105 @@ namespace dpworkswebsite.Controllers
 			{
 				kvParams = Utils.FixAnnoyingDataIssues(kvParams);
 				DbService db = new Services.DbService();
-				db.Delete(View.TableName, kvParams);
+				db.Delete(View, kvParams);
 				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("OK") };
 			}
 			catch (Exception ex)
 			{
-				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("Error: " + ex.Message) };
+				resp = new ResponsePacket() { Data = Encoding.UTF8.GetBytes("Error") };
+				Console.WriteLine(ex.Message);
 			}
 
 			return resp;
 		}
 
+		// TODO: Decouple this from jqWidgets
 		public string Initialize(Session session, Dictionary<string, object> parms, string html)
 		{
+			int lookupCounter = 0;
 			List<string> fields = new List<string>();
 			List<string> columns = new List<string>();
-			View.Fields.ForEach(f => fields.Add("{ name: " + f.FieldName.SingleQuote() + ", type: " + f.GetJavascriptType().SingleQuote() + "}"));
+			List<string> daLookups = new List<string>();
+			View.Fields.ForEach(f => fields.Add("{ name: " + f.Alias.SingleQuote() + ", type: " + f.GetJavascriptType().SingleQuote() + "}"));
 			View.Fields.Where(f => f.Visible).ForEach(f => 
 				{
-					if (f.LookupInfo == null)
+					if (!f.IsFK)
 					{
+						// The simpler case -- a straight forward mapping of the data field.
 						columns.Add("{ text: " + f.Caption.SingleQuote() + 
-							", dataField: " + f.FieldName.SingleQuote() + 
+							", dataField: " + f.Alias.SingleQuote() + 
 							", width: " + f.Width.SingleQuote() + 
 							"}\r\n");
 					}
 					else
 					{
+						++lookupCounter;
+						List<string> lookupFields = new List<string>();
+
+						// Let app handle exception if the view isn't registered.
+						ViewInfo lookupViewInfo = ViewInfo.RegisteredViews[f.LookupInfo.ViewName];
+						lookupViewInfo.Fields.ForEach(lvfi => lookupFields.Add(("name: " + lvfi.FieldName.SingleQuote() + ", type: " + lvfi.GetJavascriptType().SingleQuote()).CurlyBraces()));
+						string lookupFieldStr = String.Join(",", lookupFields);
+
+						string lookup = @"
+							var lookup" + lookupCounter + @" =
+							{
+								datatype: 'json',
+								datafields: [" + lookupFieldStr + @"],
+								url: " + f.LookupInfo.Url.SingleQuote() + @",
+								async: false
+							};
+
+							var daLookup" + lookupCounter + @" = new $.jqx.dataAdapter(lookup" + lookupCounter + @", { uniqueDataFields: ['Id'] });
+							";
+
+						daLookups.Add(lookup);
 						// Hardcoded to make sure it works first.
+						// See the example at the bottom of this file for what the generated columns looks like.
 						columns.Add("{ text: " + f.Caption.SingleQuote() +
-							", colummntype: 'template'" +
-							", dataField: " + f.FieldName.SingleQuote() +
+							", columntype: 'template'" +
+							", dataField: " + f.Alias.SingleQuote() +
+							", displayField: " + f.LookupInfo.ValueFieldName.SingleQuote() +	// This is the field in the FK table that is joined to the master table, and is a kludge because of how jqxDataTable with a jqxDropDownList works.
 							", width: " + f.Width.SingleQuote() +
-							", createEditor: function(row, cellvalue, editor, cellText, width, height) {editor.jqxDropDownList({source: daUnitList, displayMember: 'Abbr', valueMember: 'Id', width: width, height: height});},\r\n" +
+							", createEditor: function(row, cellvalue, editor, cellText, width, height) {editor.jqxDropDownList({source: daLookup" + lookupCounter + ", displayMember: " + f.LookupInfo.ValueFieldName.SingleQuote() + ", valueMember: " + f.LookupInfo.ValueFieldName.SingleQuote() + ", width: width, height: height});},\r\n" +
 							"initEditor: function (row, cellvalue, editor, celltext, width, height) {editor.jqxDropDownList({ width: width, height: height });editor.val(cellvalue);},\r\n" +
 							"getEditorValue: function (row, cellvalue, editor) {return editor.val();}}\r\n");
 					}
 				});
+
+			List<string> initializers = new List<string>();
+
+			View.Fields.Where(f => f.DefaultValue != null && !String.IsNullOrEmpty(f.DefaultValue.ToString())).ForEach(f => 
+				{
+					if (f.DataType == typeof(string))
+					{
+						initializers.Add(f.Alias + ": '" + f.DefaultValue + "'");
+					}
+					else if (f.DataType == typeof(bool))
+					{
+						initializers.Add(f.Alias + ": " + (((bool)f.DefaultValue) ? "true" : "false"));
+					}
+					else
+					{
+						// Without single quotes.
+						initializers.Add(f.Alias + ": " + f.DefaultValue);
+					}
+				});
+
 			string fieldArray = String.Join(",", fields);
 			string columnsArray = String.Join(",", columns);
+			string initMap = String.Join(",", initializers);
+			string js = String.Join("\r\n", daLookups);
 
-			string js = @"            
+			js = js + @"            
             var rowIndex;           // The index of the selected row.
             var recordID;           // Our ID field for the selected record.
-            var tableNameID = " + TableName.SingleQuote() + @";
+            var tableNameID = " + DataTableName.SingleQuote() + @";
             var tableDataUrl = " + (CallbackObjectName + "List").SingleQuote() + @";
             var addRecordUrl = '/add" + CallbackObjectName + @"?__CSRFToken__=@CSRFValue@';
             var updateRecordUrl = '/update" + CallbackObjectName + @"?__CSRFToken__=@CSRFValue@';
             var deleteRecordUrl = '/delete" + CallbackObjectName + @"?__CSRFToken__=@CSRFValue@';
-            var addRecordInitField = " + InitField.SingleQuote() + @";
-            var addRecordInitValue = " + InitValue.SingleQuote() + @";
+            var addRecordInitializers = {" + initMap + @"};
             var fields = [" + fieldArray + @"];
             var columns = [" + columnsArray + @"]";
 
@@ -160,5 +218,68 @@ namespace dpworkswebsite.Controllers
 
 			return html;
 		}
+
+		private void FixupLookups(DbService db, Dictionary<string, object> kvParams)
+		{
+			// Find all lookup fields:
+			View.Fields.Where(f => f.IsFK).ForEach(f =>
+				{
+					object val;
+
+					if (kvParams.TryGetValue(f.LookupInfo.ValueFieldName, out val))
+					{
+						// Remove the *value field* name
+						kvParams.Remove(f.LookupInfo.ValueFieldName);
+						// Replace with the non-aliased *FK field* name.
+						// TODO: This doesn't handle multiple columns referencing the same FK table.
+						// Now, lookup the value in the FK table.  Sigh, this requires a database query.  If the jqxDataTable / jqxDropDownList worked correctly with ID's, this wouldn't be necessary!
+						object id = db.QueryScalar("select " + f.LookupInfo.IdFieldName + " from " + f.LookupInfo.ViewName + " where " + f.LookupInfo.ValueFieldName + "=@val", new Dictionary<string, object>() { { "@val", val } });
+						// TODO: If the FK column allows nulls, then we can leave this null, otherwise a value is required, and we use -1 for "no lookup found" - the jqxDropDownList's "Please Choose:" option.
+						kvParams[f.Alias] = (id == null) ? -1 : id;
+					}
+				});
+		}
 	}
 }
+
+/* Example of the FK column drop down list:
+
+[{ text: 'Name', dataField: 'MaterialName', width: '15%' },
+        {
+            text: 'Unit', columntype: 'template', dataField: 'UnitId', displayField: 'Abbr', width: '20%',
+            createEditor: function (row, cellvalue, editor, cellText, width, height) {
+                editor.jqxDropDownList({ source: daUnitList, displayMember: 'Abbr', valueMember: 'Abbr', width: width, height: height });
+            },
+            initEditor: function (row, cellvalue, editor, celltext, width, height) {
+                editor.jqxDropDownList({ width: width, height: height });
+                alert("cellvalue = " + cellvalue + "   celltext = " + celltext);
+                editor.val(cellvalue);
+            },
+            getEditorValue: function (row, cellvalue, editor) {
+                return editor.val();
+            }
+        },
+        { text: 'Cost', dataField: 'MaterialUnitCost', width: '20%' }]
+
+*/
+
+
+// Example of how to set up the json data source for a lookup field.
+/*
+
+            var unitList =
+            {
+                datatype: "json",
+                datafields: [
+                    { name: 'Id', type: 'number' },
+                    { name: 'Abbr', type: 'string' },
+                    { name: 'Name', type: 'string' }
+                ],
+                url: "/unitlist",
+                async: false
+            };
+
+            var daUnitList = new $.jqx.dataAdapter(unitList, { uniqueDataFields: ["Id"] });
+
+
+*/
